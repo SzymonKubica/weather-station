@@ -74,13 +74,11 @@ void led_blinker_task(void *pvParameter) {
   while (true) {
     i++;
     gpio_set_level(GPIO_OUTPUT_IO_0, i % 2);
-    char *level = malloc(4 * sizeof(char));
+    char *level;
     level = (i % 2 == 1) ? "HIGH" : "LOW";
 
     ESP_LOGI(BLINKER_TAG, "Setting the led pin %d %s\n", GPIO_OUTPUT_IO_0,
              level);
-    free(level);
-
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
