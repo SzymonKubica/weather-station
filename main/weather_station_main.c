@@ -79,6 +79,7 @@ void led_blinker_task(void *pvParameter) {
 
     ESP_LOGI(BLINKER_TAG, "Setting the led pin %d %s\n", GPIO_OUTPUT_IO_0,
              level);
+    free(level);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
