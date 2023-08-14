@@ -1,4 +1,4 @@
-/* 
+/*
 	DHT22 temperature sensor driver
 */
 
@@ -11,11 +11,11 @@
 
 // == function prototypes =======================================
 
-void setDHTgpio(int gpio);
-void errorHandler(int response);
-int readDHT();
-float getHumidity();
-float getTemperature();
-int getSignalLevel(int usTimeOut, bool state);
+void set_dht_gpio(int gpio);
+void handle_errors(int response);
+int read_dht();
+float get_humidity();
+float get_temperature();
+int get_signal_level(int usTimeOut, bool state);
 
 #endif
