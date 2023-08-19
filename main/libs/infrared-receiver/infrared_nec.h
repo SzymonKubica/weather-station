@@ -4,7 +4,7 @@
 #include "driver/rmt.h"
 
 // CHOOSE SELF TEST OR NORMAL TEST
-#define RMT_RX_SELF_TEST 1
+#define RMT_RX_SELF_TEST 0
 
 /******************************************************/
 /*****                SELF TEST:                  *****/
@@ -34,7 +34,8 @@
   (80000000 / RMT_CLK_DIV /                                                    \
    100000) /*!< RMT counter value for 10 us.(Source clock is APB clock) */
 
-#define NEC_HEADER_HIGH_US 9000 /*!< NEC protocol header: positive 9ms */
+/* My remote seems to send the header of length 9350 */
+#define NEC_HEADER_HIGH_US 9350 /*!< NEC protocol header: positive 9ms */
 #define NEC_HEADER_LOW_US 4500  /*!< NEC protocol header: negative 4.5ms*/
 #define NEC_BIT_ONE_HIGH_US 560 /*!< NEC protocol data bit 1: positive 0.56ms  \
                                  */
@@ -47,7 +48,7 @@
   (1120 - NEC_BIT_ZERO_HIGH_US) /*!< NEC protocol data bit 0: negative 0.56ms  \
                                  */
 #define NEC_BIT_END 560         /*!< NEC protocol end: positive 0.56ms */
-#define NEC_BIT_MARGIN 20       /*!< NEC parse margin time */
+#define NEC_BIT_MARGIN 400       /*!< NEC parse margin time */
 
 #define NEC_ITEM_DURATION(d)                                                   \
   ((d & 0x7fff) * 10 /                                                         \

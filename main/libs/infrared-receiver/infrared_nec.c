@@ -63,8 +63,10 @@ void nec_fill_item_end(rmt_item32_t *item) {
 /*
  * @brief Check whether duration is around target_us
  */
-inline bool nec_check_in_range(int duration_ticks, int target_us,
+bool nec_check_in_range(int duration_ticks, int target_us,
                                int margin_us) {
+  printf ("Nec item duration: %d\n", NEC_ITEM_DURATION(duration_ticks));
+  printf ("Target duration duration: %d +- %d\n", target_us, margin_us);
   if ((NEC_ITEM_DURATION(duration_ticks) < (target_us + margin_us)) &&
       (NEC_ITEM_DURATION(duration_ticks) > (target_us - margin_us))) {
     return true;
@@ -77,6 +79,7 @@ inline bool nec_check_in_range(int duration_ticks, int target_us,
  * @brief Check whether this value represents an NEC header
  */
 bool nec_header_if(rmt_item32_t *item) {
+  printf("Item: level0: %d, level1: %d, duration0: %d, duration1: %d\n", item->level0, item->level1, item->duration0, item->duration1);
   if ((item->level0 == RMT_RX_ACTIVE_LEVEL &&
        item->level1 != RMT_RX_ACTIVE_LEVEL) &&
       nec_check_in_range(item->duration0, NEC_HEADER_HIGH_US, NEC_BIT_MARGIN) &&
@@ -121,13 +124,16 @@ bool nec_bit_zero_if(rmt_item32_t *item) {
 int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
                     uint16_t *data) {
   int w_len = item_num;
+  printf("w_len: %d\n", w_len);
   if (w_len < NEC_DATA_ITEM_NUM) {
     return -1;
   }
+  printf("Data item num fine\n");
   int i = 0, j = 0;
   if (!nec_header_if(item++)) {
     return -1;
   }
+  printf("Nec header fine\n");
   uint16_t addr_t = 0;
   for (j = 0; j < 16; j++) {
     if (nec_bit_one_if(item)) {
@@ -140,6 +146,7 @@ int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
     item++;
     i++;
   }
+  printf("Address fine: %d", addr_t);
   uint16_t data_t = 0;
   for (j = 0; j < 16; j++) {
     if (nec_bit_one_if(item)) {

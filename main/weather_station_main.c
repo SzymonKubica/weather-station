@@ -90,6 +90,7 @@ static void rmt_example_nec_rx_task() {
     // RMT driver will push all the data it receives to its ringbuffer.
     // We just need to parse the value and return the spaces of ringbuffer.
     rmt_item32_t *item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 1000);
+    printf("Item received\n");
     if (item) {
       uint16_t rmt_addr;
       uint16_t rmt_cmd;
@@ -98,6 +99,7 @@ static void rmt_example_nec_rx_task() {
         // parse data value from ringbuffer.
         int res = nec_parse_items(item + offset, rx_size / 4 - offset,
                                   &rmt_addr, &rmt_cmd);
+        printf("Response: %d", res);
         if (res > 0) {
           offset += res + 1;
           ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
