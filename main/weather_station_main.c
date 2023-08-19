@@ -19,14 +19,16 @@
 #include "libs/dht/DHT.h"
 #include "libs/ssd1306/font8x8_basic.h"
 #include "libs/ssd1306/ssd1306.h"
+#include "libs/infrared-receiver/infrared_nec.h"
 
 // Project module imports
-#include "gpio/gpio_util.h"
 #include "display/display.h"
+#include "gpio/gpio_util.h"
 #include "util/util.h"
 
 #define DHT_TAG "DHT"
 #define BLINKER_TAG "LED_BLINKER"
+#define NEC_TAG "NEC"
 
 static QueueHandle_t gpio_evt_queue = NULL;
 
@@ -45,7 +47,6 @@ void led_blinker_task(void *pvParameter) {
   }
 }
 
-
 void temperature_monitor_task(void *pvParameter) {
   ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
   SSD1306_t dev;
@@ -53,7 +54,6 @@ void temperature_monitor_task(void *pvParameter) {
 
   ESP_LOGI(DHT_TAG, "Initialising the DHT Sensor...\n\n");
   set_dht_gpio(GPIO_NUM_4);
-
 
   while (true) {
     ESP_LOGI(DHT_TAG, "=== Reading DHT ===\n");
@@ -69,9 +69,95 @@ void temperature_monitor_task(void *pvParameter) {
 
     // -- wait at least 2 sec before reading again ------------
     // The interval of whole process must be beyond 2 seconds !!
-    wait_seconds(2);
+    wait_seconds(3);
   }
 }
+
+/**
+ * @brief RMT receiver demo, this task will print each received NEC data.
+ *
+ */
+static void rmt_example_nec_rx_task() {
+  int channel = RMT_RX_CHANNEL;
+  nec_rx_init();
+  RingbufHandle_t rb = NULL;
+  // get RMT RX ringbuffer
+  rmt_get_ringbuf_handle(channel, &rb);
+  rmt_rx_start(channel, 1);
+  while (rb) {
+    size_t rx_size = 0;
+    // try to receive data from ringbuffer.
+    // RMT driver will push all the data it receives to its ringbuffer.
+    // We just need to parse the value and return the spaces of ringbuffer.
+    rmt_item32_t *item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 1000);
+    if (item) {
+      uint16_t rmt_addr;
+      uint16_t rmt_cmd;
+      int offset = 0;
+      while (1) {
+        // parse data value from ringbuffer.
+        int res = nec_parse_items(item + offset, rx_size / 4 - offset,
+                                  &rmt_addr, &rmt_cmd);
+        if (res > 0) {
+          offset += res + 1;
+          ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
+                   rmt_cmd);
+        } else {
+          break;
+        }
+      }
+      // after parsing the data, return spaces to ringbuffer.
+      vRingbufferReturnItem(rb, (void *)item);
+    } else {
+      break;
+    }
+  }
+  vTaskDelete(NULL);
+}
+
+/**
+ * @brief RMT transmitter demo, this task will periodically send NEC data. (100
+ * * 32 bits each time.)
+ *
+ */
+static void rmt_example_nec_tx_task() {
+  vTaskDelay(10);
+  nec_tx_init();
+  esp_log_level_set(NEC_TAG, ESP_LOG_INFO);
+  int channel = RMT_TX_CHANNEL;
+  uint16_t cmd = 0x0;
+  uint16_t addr = 0x11;
+  int nec_tx_num = RMT_TX_DATA_NUM;
+  for (;;) {
+    ESP_LOGI(NEC_TAG, "RMT TX DATA");
+    size_t size = (sizeof(rmt_item32_t) * NEC_DATA_ITEM_NUM * nec_tx_num);
+    // each item represent a cycle of waveform.
+    rmt_item32_t *item = (rmt_item32_t *)malloc(size);
+    int item_num = NEC_DATA_ITEM_NUM * nec_tx_num;
+    memset((void *)item, 0, size);
+    int i, offset = 0;
+    while (1) {
+      // To build a series of waveforms.
+      i = nec_build_items(channel, item + offset, item_num - offset,
+                          ((~addr) << 8) | addr, ((~cmd) << 8) | cmd);
+      if (i < 0) {
+        break;
+      }
+      cmd++;
+      addr++;
+      offset += i;
+    }
+    // To send data according to the waveform items.
+    rmt_write_items(channel, item, item_num, true);
+    // Wait until sending is done.
+    rmt_wait_tx_done(channel, portMAX_DELAY);
+    // before we free the data, make sure sending is already done.
+    free(item);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
+  vTaskDelete(NULL);
+}
+
 
 void app_main(void) {
   configure_gpio_outputs();
@@ -85,6 +171,8 @@ void app_main(void) {
 
   xTaskCreate(&temperature_monitor_task, "temperature_monitor", 4096, NULL, 5,
               NULL);
+
+  xTaskCreate(&rmt_example_nec_rx_task, "rmt_nec_rx_task", 4096, NULL, 10, NULL);
 
   fflush(stdout);
 }
