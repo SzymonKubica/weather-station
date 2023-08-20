@@ -7,7 +7,7 @@ set(srcs
     "util/logging.c"
     )
 set(includes "libs"
-  "gpio" "display")
+  "gpio" "display" "util")
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS ${includes})
 
