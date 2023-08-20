@@ -19,8 +19,10 @@
 #include "soc/rmt_reg.h"
 
 #include "infrared_nec.h"
+#include "../../util/logging.h"
+#include "../../util/logging.c"
 
-#define NEC_TAG "NEC"
+#define IR_TAG "IR_RX"
 
 /*
  * @brief Build register value of waveform for NEC one data bit
@@ -63,10 +65,11 @@ void nec_fill_item_end(rmt_item32_t *item) {
 /*
  * @brief Check whether duration is around target_us
  */
-bool nec_check_in_range(int duration_ticks, int target_us,
-                               int margin_us) {
-  printf ("Nec item duration: %d\n", NEC_ITEM_DURATION(duration_ticks));
-  printf ("Target duration duration: %d +- %d\n", target_us, margin_us);
+bool nec_check_in_range(int duration_ticks, int target_us, int margin_us) {
+  LOG_VERBOSE(IR_TAG, "NEC item duration: %d",
+              NEC_ITEM_DURATION(duration_ticks));
+  LOG_VERBOSE(IR_TAG, "Target item duration: %d +- %d\n", target_us, margin_us);
+
   if ((NEC_ITEM_DURATION(duration_ticks) < (target_us + margin_us)) &&
       (NEC_ITEM_DURATION(duration_ticks) > (target_us - margin_us))) {
     return true;
@@ -79,7 +82,11 @@ bool nec_check_in_range(int duration_ticks, int target_us,
  * @brief Check whether this value represents an NEC header
  */
 bool nec_header_if(rmt_item32_t *item) {
-  printf("Item: level0: %d, level1: %d, duration0: %d, duration1: %d\n", item->level0, item->level1, item->duration0, item->duration1);
+  LOG_DEBUG(IR_TAG,
+            "Checking if NEC header is valid...\nitem contents:\nlevel0: %d, "
+            "level1: %d, duration0: %d, duration1: %d",
+            item->level0, item->level1, item->duration0, item->duration1);
+
   if ((item->level0 == RMT_RX_ACTIVE_LEVEL &&
        item->level1 != RMT_RX_ACTIVE_LEVEL) &&
       nec_check_in_range(item->duration0, NEC_HEADER_HIGH_US, NEC_BIT_MARGIN) &&
@@ -93,6 +100,7 @@ bool nec_header_if(rmt_item32_t *item) {
  * @brief Check whether this value represents an NEC data bit 1
  */
 bool nec_bit_one_if(rmt_item32_t *item) {
+  LOG_VERBOSE(IR_TAG, "Checking if the item represents a logical 1...");
   if ((item->level0 == RMT_RX_ACTIVE_LEVEL &&
        item->level1 != RMT_RX_ACTIVE_LEVEL) &&
       nec_check_in_range(item->duration0, NEC_BIT_ONE_HIGH_US,
@@ -107,6 +115,7 @@ bool nec_bit_one_if(rmt_item32_t *item) {
  * @brief Check whether this value represents an NEC data bit 0
  */
 bool nec_bit_zero_if(rmt_item32_t *item) {
+  LOG_VERBOSE(IR_TAG, "Checking if the item represents a logical 0...");
   if ((item->level0 == RMT_RX_ACTIVE_LEVEL &&
        item->level1 != RMT_RX_ACTIVE_LEVEL) &&
       nec_check_in_range(item->duration0, NEC_BIT_ZERO_HIGH_US,
@@ -123,17 +132,21 @@ bool nec_bit_zero_if(rmt_item32_t *item) {
  */
 int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
                     uint16_t *data) {
+  LOG_DEBUG(IR_TAG, "Parsing NEC waveform into address and command.");
   int w_len = item_num;
-  printf("w_len: %d\n", w_len);
+  LOG_DEBUG(IR_TAG, "Number of NEC data items: %d, required: %d", w_len,
+            NEC_DATA_ITEM_NUM);
   if (w_len < NEC_DATA_ITEM_NUM) {
+    LOG_DEBUG(IR_TAG, "Not enough data items, parsing aborted.");
     return -1;
   }
-  printf("Data item num fine\n");
+  LOG_DEBUG(IR_TAG, "Number of NEC data items OK");
   int i = 0, j = 0;
   if (!nec_header_if(item++)) {
+    LOG_ERROR(IR_TAG, "Malformed NED header, parsing aborted.");
     return -1;
   }
-  printf("Nec header fine\n");
+  LOG_DEBUG(IR_TAG, "NEC header OK");
   uint16_t addr_t = 0;
   for (j = 0; j < 16; j++) {
     if (nec_bit_one_if(item)) {
@@ -141,12 +154,13 @@ int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
     } else if (nec_bit_zero_if(item)) {
       addr_t |= (0 << j);
     } else {
+      LOG_DEBUG(IR_TAG, "Parsing the address failed.");
       return -1;
     }
     item++;
     i++;
   }
-  printf("Address fine: %d", addr_t);
+  LOG_DEBUG(IR_TAG, "Address parsed OK: %d", addr_t);
   uint16_t data_t = 0;
   for (j = 0; j < 16; j++) {
     if (nec_bit_one_if(item)) {
@@ -154,11 +168,13 @@ int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
     } else if (nec_bit_zero_if(item)) {
       data_t |= (0 << j);
     } else {
+      LOG_DEBUG(IR_TAG, "Parsing the data failed.");
       return -1;
     }
     item++;
     i++;
   }
+  LOG_DEBUG(IR_TAG, "Data parsed OK: %d", data_t);
   *addr = addr_t;
   *data = data_t;
   return i;
@@ -238,4 +254,3 @@ void nec_rx_init() {
   rmt_config(&rmt_rx);
   rmt_driver_install(rmt_rx.channel, 1000, 0);
 }
-
