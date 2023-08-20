@@ -25,6 +25,7 @@
 #include "display/display.h"
 #include "gpio/gpio_util.h"
 #include "util/util.h"
+#include "util/logging.h"
 
 #define DHT_TAG "DHT"
 #define BLINKER_TAG "LED_BLINKER"
@@ -77,7 +78,43 @@ void temperature_monitor_task(void *pvParameter) {
  * @brief RMT receiver demo, this task will print each received NEC data.
  *
  */
-static void rmt_example_nec_rx_task() {
+static void rmt_nex_rx_continuous_task() {
+  int channel = RMT_RX_CHANNEL;
+  nec_rx_init();
+  RingbufHandle_t rb = NULL;
+  // get RMT RX ringbuffer
+  rmt_get_ringbuf_handle(channel, &rb);
+  rmt_rx_start(channel, 1);
+  while (rb) {
+    size_t rx_size = 0;
+    // try to receive data from ringbuffer.
+    // RMT driver will push all the data it receives to its ringbuffer.
+    // We just need to parse the value and return the spaces of ringbuffer.
+    rmt_item32_t *item = (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 1000);
+    printf("Item received\n");
+    if (item) {
+      uint16_t rmt_addr;
+      uint16_t rmt_cmd;
+      int offset = 0;
+      while (1) {
+        // parse data value from ringbuffer.
+        int res = nec_parse_items(item + offset, rx_size / 4 - offset,
+                                  &rmt_addr, &rmt_cmd);
+        printf("Response: %d", res);
+        if (res > 0) {
+          offset += res + 1;
+          ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
+                   rmt_cmd);
+        } else {
+          break;
+        }
+      }
+      // after parsing the data, return spaces to ringbuffer.
+      vRingbufferReturnItem(rb, (void *)item);
+    }
+  }
+}
+static void rmt_nex_rx_receive_and_stop_after_timeout_task() {
   int channel = RMT_RX_CHANNEL;
   nec_rx_init();
   RingbufHandle_t rb = NULL;
@@ -114,6 +151,7 @@ static void rmt_example_nec_rx_task() {
       break;
     }
   }
+  printf("Buffere receive call timed out, terminating the task.\n");
   vTaskDelete(NULL);
 }
 
@@ -167,6 +205,10 @@ void app_main(void) {
   esp_log_level_set("*", ESP_LOG_INFO);
 
   printf("Welcome to the weather station!\n");
+  LOG_ERROR("Welcome to the weather station!");
+  LOG_INFO("Welcome to the weather station!");
+  LOG_DEBUG("Welcome to the weather station!");
+
 
   // Make sure the LED is off.
   gpio_set_level(GPIO_OUTPUT_IO_0, 1);
@@ -174,7 +216,7 @@ void app_main(void) {
   xTaskCreate(&temperature_monitor_task, "temperature_monitor", 4096, NULL, 5,
               NULL);
 
-  xTaskCreate(&rmt_example_nec_rx_task, "rmt_nec_rx_task", 4096, NULL, 10, NULL);
+  xTaskCreate(&rmt_nex_rx_receive_and_stop_after_timeout_task, "rmt_nec_rx_task", 4096, NULL, 10, NULL);
 
   fflush(stdout);
 }

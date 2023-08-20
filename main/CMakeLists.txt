@@ -3,7 +3,9 @@ set(srcs
     "libs/dht/DHT_c.c"
     "display/display.c"
     "gpio/gpio_util.c"
-    "util/util.c")
+    "util/util.c"
+    "util/logging.c"
+    )
 set(includes "libs"
   "gpio" "display")
 idf_component_register(SRCS "${srcs}"
