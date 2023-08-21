@@ -87,4 +87,32 @@ void nec_tx_init();
 
 void nec_rx_init();
 
+enum RemoteButton {
+  BUTTON_0,
+  BUTTON_1,
+  BUTTON_2,
+  BUTTON_3,
+  BUTTON_4,
+  BUTTON_5,
+  BUTTON_6,
+  BUTTON_7,
+  BUTTON_8,
+  BUTTON_9,
+  BUTTON_100_PLUS,
+  BUTTON_200_PLUS,
+  BUTTON_PLUS,
+  BUTTON_MINUS,
+  BUTTON_FORWARD,
+  BUTTON_BACKWARD,
+  BUTTON_PLAY_PAUSE,
+  BUTTON_CHANNEL,
+  BUTTON_CHANNEL_MINUS,
+  BUTTON_CHANNEL_PLUS,
+  BUTTON_EQ,
+  ERROR,
+};
+
+extern enum RemoteButton mapFromInt(int data_value);
+extern const char *button_names[];
+
 #endif

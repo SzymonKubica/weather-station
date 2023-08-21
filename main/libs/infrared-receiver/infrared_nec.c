@@ -18,11 +18,75 @@
 #include "freertos/task.h"
 #include "soc/rmt_reg.h"
 
-#include "infrared_nec.h"
-#include "../../util/logging.h"
 #include "../../util/logging.c"
+#include "../../util/logging.h"
+#include "infrared_nec.h"
 
 #define IR_TAG "IR_RX"
+
+const char *button_names[] = {
+    "Zero",       "One",
+    "Two",        "Three",
+    "Four",       "Five",
+    "Six",        "Seven",
+    "Eight",      "Nine",
+    "100 +",      "200 +",
+    "Volume +",   "Volume -",
+    "Forward",    "Backward",
+    "Play/Pause", "Channel",
+    "Channel -",  "Channel +",
+    "EQ",         "Error - no button recognised",
+
+};
+
+enum RemoteButton mapFromInt(int dataValue) {
+  switch (dataValue) {
+  case 0xe916:
+    return BUTTON_0;
+  case 0xf30c:
+    return BUTTON_1;
+  case 0xe718:
+    return BUTTON_2;
+  case 0xa15e:
+    return BUTTON_3;
+  case 0xf708:
+    return BUTTON_4;
+  case 0xe31c:
+    return BUTTON_5;
+  case 0xa55a:
+    return BUTTON_6;
+  case 0xbd42:
+    return BUTTON_7;
+  case 0xad52:
+    return BUTTON_8;
+  case 0xb54a:
+    return BUTTON_9;
+  case 0xe619:
+    return BUTTON_100_PLUS;
+  case 0xf20e:
+    return BUTTON_200_PLUS;
+  case 0xea15:
+    return BUTTON_PLUS;
+  case 0xf807:
+    return BUTTON_MINUS;
+  case 0xbf40:
+    return BUTTON_FORWARD;
+  case 0xbb44:
+    return BUTTON_BACKWARD;
+  case 0xbc43:
+    return BUTTON_PLAY_PAUSE;
+  case 0xb946:
+    return BUTTON_CHANNEL;
+  case 0xba45:
+    return BUTTON_CHANNEL_MINUS;
+  case 0xb847:
+    return BUTTON_CHANNEL_PLUS;
+  case 0xf609:
+    return BUTTON_EQ;
+  default:
+    return ERROR;
+  }
+}
 
 /*
  * @brief Build register value of waveform for NEC one data bit
