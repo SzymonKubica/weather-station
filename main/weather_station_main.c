@@ -30,7 +30,7 @@
 #define BLINKER_TAG "LED_BLINKER"
 #define NEC_TAG "NEC"
 
-static QueueHandle_t gpio_evt_queue = NULL;
+static QueueHandle_t ir_remote_input_queue = NULL;
 
 void led_blinker_task(void *pvParameter) {
   ESP_LOGI(BLINKER_TAG, "Starting Led Blinker Task\n\n");
@@ -78,6 +78,12 @@ void temperature_monitor_task(void *pvParameter) {
  *
  */
 static void rmt_nex_rx_continuous_task() {
+  char txBuffer[50];
+  ir_remote_input_queue = xQueueCreate(10, sizeof(txBuffer));
+  if (!ir_remote_input_queue) {
+    ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
+  }
+
   int channel = RMT_RX_CHANNEL;
   nec_rx_init();
   RingbufHandle_t rb = NULL;
@@ -103,6 +109,8 @@ static void rmt_nex_rx_continuous_task() {
           offset += res + 1;
           ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
                    rmt_cmd);
+          ESP_LOGI(NEC_TAG, "Button press registered: %s", button_names[mapFromInt(rmt_cmd)]);
+
           if (rmt_cmd == 0xf609) {
             led_status = (led_status + 1) % 2;
             gpio_set_level(GPIO_OUTPUT_IO_0, led_status);
