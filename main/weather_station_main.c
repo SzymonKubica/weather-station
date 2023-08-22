@@ -34,15 +34,17 @@ TaskHandle_t task_1_handle = NULL;
 TaskHandle_t task_2_handle = NULL;
 static QueueHandle_t ir_remote_input_queue = NULL;
 
+struct IRRemotePressRegisteredMessage {
+  enum RemoteButton registeredButton;
+} remoteMessage;
+
 void led_blinker_task(void *pvParameter) {
   ESP_LOGI(BLINKER_TAG, "Starting Led Blinker Task\n\n");
   int i = 0;
-  char rxBuffer[50];
+  struct IRRemotePressRegisteredMessage *rxMessage;
   while (true) {
-    if (xQueueReceive(ir_remote_input_queue, &(rxBuffer), (TickType_t)5)) {
-      ESP_LOGI(BLINKER_TAG, "Received data from queue == %s/n", rxBuffer);
-
-      if (strcmp(button_names[BUTTON_EQ], rxBuffer) == 0) {
+    if (xQueueReceive(ir_remote_input_queue, &(rxMessage), (TickType_t)2)) {
+      if (rxMessage->registeredButton == BUTTON_EQ) {
         i = (i + 1) % 2;
         gpio_set_level(GPIO_OUTPUT_IO_0, i % 2);
         char *level;
@@ -51,6 +53,7 @@ void led_blinker_task(void *pvParameter) {
         ESP_LOGI(BLINKER_TAG, "Setting the led pin %d %s\n", GPIO_OUTPUT_IO_0,
                  level);
       }
+
       wait_seconds(1);
     }
   }
@@ -82,13 +85,12 @@ void temperature_monitor_task(void *pvParameter) {
   }
 }
 
+
 /**
  * @brief RMT receiver demo, this task will print each received NEC data.
  *
  */
 static void rmt_nex_rx_continuous_task() {
-  char txBuffer[50];
-  ir_remote_input_queue = xQueueCreate(5, sizeof(txBuffer));
   if (!ir_remote_input_queue) {
     ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
   }
@@ -99,7 +101,6 @@ static void rmt_nex_rx_continuous_task() {
   // get RMT RX ringbuffer
   rmt_get_ringbuf_handle(channel, &rb);
   rmt_rx_start(channel, 1);
-  int led_state = 0;
   while (rb) {
     size_t rx_size = 0;
     // try to receive data from ringbuffer.
@@ -116,19 +117,14 @@ static void rmt_nex_rx_continuous_task() {
                                   &rmt_addr, &rmt_cmd);
         if (res > 0) {
           offset += res + 1;
+          struct IRRemotePressRegisteredMessage *message;
+          message = &remoteMessage;
+          message->registeredButton = mapFromInt(rmt_cmd);
+          xQueueSend(ir_remote_input_queue, (void *)&message, (TickType_t)0);
           ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
                    rmt_cmd);
           ESP_LOGI(NEC_TAG, "Button press registered: %s",
                    button_names[mapFromInt(rmt_cmd)]);
-          // Put the reading into the tx buffer
-          //sprintf(txBuffer, "%s", button_names[mapFromInt(rmt_cmd)]);
-          // xQueueSend(ir_remote_input_queue, (void *)&txBuffer,
-          // (TickType_t)0);
-          enum RemoteButton button_press = mapFromInt(rmt_cmd);
-          if (button_press == BUTTON_EQ) {
-            led_state = (led_state + 1) % 2;
-            gpio_set_level(GPIO_OUTPUT_IO_0, led_state);
-          }
 
         } else {
           break;
@@ -148,15 +144,15 @@ void app_main(void) {
   // Make sure the LED is off.
   gpio_set_level(GPIO_OUTPUT_IO_0, 1);
 
-  /*
-  xTaskCreate(&led_blinker_task, "led_blinker", 2048, NULL, 5,
-              &task_1_handle);
-              */
+  ir_remote_input_queue =
+      xQueueCreate(10, sizeof(struct IRRemotePressRegistereMessage *));
+
+  xTaskCreate(&led_blinker_task, "led_blinker", 2048, NULL, 5, &task_1_handle);
   xTaskCreate(&temperature_monitor_task, "temperature_monitor", 4096, NULL, 5,
               NULL);
 
-  xTaskCreate(&rmt_nex_rx_continuous_task, "rmt_nec_rx_task", 4096, NULL, 10,
-              &task_2_handle);
+  xTaskCreatePinnedToCore(&rmt_nex_rx_continuous_task, "rmt_nec_rx_task", 4096, NULL, 10,
+              &task_2_handle, 0);
 
   fflush(stdout);
 }
