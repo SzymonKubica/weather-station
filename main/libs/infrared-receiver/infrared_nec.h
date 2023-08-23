@@ -58,7 +58,7 @@
 #define RMT_TX_DATA_NUM 100        /*!< NEC tx test data number */
 #define rmt_item32_tIMEOUT_US 9500 /*!< RMT receiver timeout value(us) */
 
-inline void nec_fill_item_level(rmt_item32_t *item, int high_us, int low_us);
+void nec_fill_item_level(rmt_item32_t *item, int high_us, int low_us);
 
 void nec_fill_item_header(rmt_item32_t *item);
 
@@ -68,7 +68,7 @@ void nec_fill_item_bit_zero(rmt_item32_t *item);
 
 void nec_fill_item_end(rmt_item32_t *item);
 
-inline bool nec_check_in_range(int duration_ticks, int target_us,
+bool nec_check_in_range(int duration_ticks, int target_us,
                                int margin_us);
 
 bool nec_header_if(rmt_item32_t *item);

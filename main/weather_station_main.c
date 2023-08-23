@@ -42,10 +42,10 @@ static QueueHandle_t system_message_queue = NULL;
 static QueueHandle_t display_message_queue = NULL;
 
 static void system_task(void *pvParameter);
-static void led_blinker_task(void *pvParameter);
 static void temperature_monitor_task(void *pvParameter);
 static void display_task(void *pvParameter);
-static void rmt_nex_rx_continuous_task();
+static void rmt_nex_rx_continuous_task(void *pvParameter);
+
 static void disable_led_by_default();
 static void toggle_led(bool *led_on);
 
@@ -185,7 +185,7 @@ static void temperature_monitor_task(void *pvParameter) {
 
 static void get_nec_ring_buffer(RingbufHandle_t *rb);
 
-static void rmt_nex_rx_continuous_task() {
+static void rmt_nex_rx_continuous_task(void *pvParameter) {
   if (!ir_remote_input_queue) {
     ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
   }
