@@ -1,4 +1,5 @@
 #include "display.h"
+#include "ssd1306.h"
 
 void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
                                     float humidity) {

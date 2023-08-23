@@ -5,9 +5,10 @@ set(srcs
     "gpio/gpio_util.c"
     "util/util.c"
     "util/logging.c"
+    "model/system_action.c"
     )
 set(includes "libs"
-  "gpio" "display" "util")
+  "gpio" "display" "util" "model")
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS ${includes})
 
