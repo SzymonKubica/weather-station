@@ -39,7 +39,7 @@ const char *button_names[] = {
 
 };
 
-enum RemoteButton mapFromInt(int dataValue) {
+enum RemoteButton map_from_int(int dataValue) {
   switch (dataValue) {
   case 0xe916:
     return BUTTON_0;

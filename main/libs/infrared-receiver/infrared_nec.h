@@ -112,7 +112,7 @@ enum RemoteButton {
   ERROR,
 };
 
-extern enum RemoteButton mapFromInt(int data_value);
+extern enum RemoteButton map_from_int(int data_value);
 extern const char *button_names[];
 
 #endif
