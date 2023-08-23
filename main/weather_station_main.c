@@ -24,26 +24,44 @@
 // Project module imports
 #include "display/display.h"
 #include "gpio/gpio_util.h"
+#include "model/system_action.h"
 #include "util/util.h"
 
 #define DHT_TAG "DHT"
-#define BLINKER_TAG "LED_BLINKER"
+#define LED_TAG "ONBOARD_LED"
+#define SYSTEM_TAG "SYSTEM"
 #define NEC_TAG "NEC"
 
 TaskHandle_t task_0_handle = NULL;
 TaskHandle_t task_1_handle = NULL;
 TaskHandle_t task_2_handle = NULL;
+TaskHandle_t task_3_handle = NULL;
 
 static QueueHandle_t ir_remote_input_queue = NULL;
+static QueueHandle_t system_message_queue = NULL;
+static QueueHandle_t display_message_queue = NULL;
 
+static void system_task(void *pvParameter);
 static void led_blinker_task(void *pvParameter);
 static void temperature_monitor_task(void *pvParameter);
+static void display_task(void *pvParameter);
 static void rmt_nex_rx_continuous_task();
 static void disable_led_by_default();
+static void toggle_led(bool *led_on);
 
-struct QueueMessage {
+struct IRRemoteMessage {
   enum RemoteButton pressed_button;
-} queueMessage;
+} ir_remote_message;
+
+struct DisplayMessage {
+  enum DisplayAction requested_action;
+  float temperature;
+  float humidity;
+} display_message;
+
+struct SystemMessage {
+  enum SystemAction system_action;
+} system_message;
 
 void app_main(void) {
   configure_gpio_outputs();
@@ -52,44 +70,101 @@ void app_main(void) {
 
   disable_led_by_default();
 
-  ir_remote_input_queue = xQueueCreate(10, sizeof(struct QueueMessage *));
+  ir_remote_input_queue = xQueueCreate(10, sizeof(struct IRRemoteMessage *));
+  system_message_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
+  display_message_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
-  xTaskCreate(&led_blinker_task, "led", 2048, NULL, 5, &task_1_handle);
-  xTaskCreate(&temperature_monitor_task, "dht-22", 4096, NULL, 5,
-              &task_0_handle);
-  xTaskCreatePinnedToCore(&rmt_nex_rx_continuous_task, "rmt_nec_rx_task", 4096,
-                          NULL, 10, &task_2_handle, 0);
+  xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
+  xTaskCreate(&temperature_monitor_task, "dht-22", 2048, NULL, 5,
+              &task_1_handle);
+  xTaskCreatePinnedToCore(&rmt_nex_rx_continuous_task, "rmt_nec_rx", 4096, NULL,
+                          10, &task_2_handle, 0);
+  xTaskCreatePinnedToCore(&display_task, "display", 4096, NULL, 5,
+                          &task_3_handle, 0);
 
   fflush(stdout);
 }
 
 static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
 
-static void led_blinker_task(void *pvParameter) {
-  ESP_LOGI(BLINKER_TAG, "Starting Led Blinker Task\n\n");
-  int i = 1; // Led is off by default
-  struct QueueMessage *received_message;
-  while (true) {
-    if (xQueueReceive(ir_remote_input_queue, &(received_message), (TickType_t)5) &&
-        received_message->pressed_button == BUTTON_EQ) {
-      i = (i + 1) % 2;
-      gpio_set_level(GPIO_OUTPUT_IO_0, i % 2);
-      char *level = (i == 0) ? "HIGH" : "LOW";
+static void system_task(void *pvParameter) {
+  struct SystemMessage *received_message;
+  struct DisplayMessage *message = &display_message;
 
-      ESP_LOGI(BLINKER_TAG, "Setting the led pin %d %s\n", GPIO_OUTPUT_IO_0,
-               level);
+  bool led_on = true;
+
+  while (true) {
+    if (xQueueReceive(system_message_queue, &(received_message),
+                      (TickType_t)5)) {
+      ESP_LOGI(SYSTEM_TAG, "Received an incoming system message: %s",
+               system_action_names[received_message->system_action]);
+      switch (received_message->system_action) {
+      case TOGGLE_ONBOARD_LED:
+        toggle_led(&led_on);
+        break;
+      case DISPLAY_OFF:
+        message->requested_action = SCREEN_OFF;
+        xQueueSend(display_message_queue, (void *)&message, (TickType_t)0);
+        break;
+      case DISPLAY_ON:
+        message->requested_action = SCREEN_ON;
+        xQueueSend(display_message_queue, (void *)&message, (TickType_t)0);
+      }
+    }
+  }
+}
+
+static void toggle_led(bool *led_on) {
+  if (*led_on) {
+    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+    *led_on = false;
+  } else {
+    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+    *led_on = true;
+  }
+}
+
+static void display_task(void *pvParameter) {
+  ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
+  SSD1306_t dev;
+  initialise_display(&dev);
+
+  bool display_on = true;
+  float temperature = 0.0;
+  float humidity = 0.0;
+  struct DisplayMessage *received_message;
+
+  while (true) {
+    if (xQueueReceive(display_message_queue, &(received_message),
+                      (TickType_t)5)) {
+
+      switch (received_message->requested_action) {
+      case SCREEN_ON:
+        display_on = true;
+        print_temperature_and_humidity(&dev, temperature, humidity);
+        break;
+      case SCREEN_OFF:
+        ssd1306_clear_screen(&dev, false);
+        display_on = false;
+        break;
+      case SHOW_DHT_READING:
+        if (display_on) {
+          temperature = received_message->temperature;
+          humidity = received_message->humidity;
+          print_temperature_and_humidity(&dev, temperature, humidity);
+        }
+        break;
+      }
     }
   }
 }
 
 static void temperature_monitor_task(void *pvParameter) {
-  ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
-  SSD1306_t dev;
-  initialise_display(&dev);
 
   ESP_LOGI(DHT_TAG, "Initialising the DHT Sensor...\n\n");
   set_dht_gpio(GPIO_NUM_4);
 
+  struct DisplayMessage *message = &display_message;
   while (true) {
     ESP_LOGI(DHT_TAG, "=== Reading DHT ===");
     int ret = read_dht();
@@ -97,9 +172,12 @@ static void temperature_monitor_task(void *pvParameter) {
 
     float humidity = get_humidity();
     float temperature = get_temperature();
-
     ESP_LOGI(DHT_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
-    print_temperature_and_humidity(&dev, temperature, humidity);
+
+    message->requested_action = SHOW_DHT_READING;
+    message->temperature = temperature;
+    message->humidity = humidity;
+    xQueueSend(display_message_queue, (void *)&message, (TickType_t)0);
 
     wait_seconds(3);
   }
@@ -115,7 +193,7 @@ static void rmt_nex_rx_continuous_task() {
   RingbufHandle_t rb = NULL;
   get_nec_ring_buffer(&rb);
 
-  struct QueueMessage *message = & queueMessage;
+  struct SystemMessage *message = &system_message;
   while (rb) {
     size_t rx_size = 0;
     // try to receive data from ringbuffer.
@@ -135,10 +213,23 @@ static void rmt_nex_rx_continuous_task() {
           ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x", rmt_addr,
                    rmt_cmd);
 
-          message->pressed_button = mapFromInt(rmt_cmd);
-          xQueueSend(ir_remote_input_queue, (void *)&message, (TickType_t)0);
+          enum RemoteButton registered_button = map_from_int(rmt_cmd);
+          switch (registered_button) {
+          case BUTTON_EQ:
+            system_message.system_action = TOGGLE_ONBOARD_LED;
+            break;
+          case BUTTON_CHANNEL_MINUS:
+            system_message.system_action = DISPLAY_OFF;
+            break;
+          case BUTTON_CHANNEL_PLUS:
+            system_message.system_action = DISPLAY_ON;
+            break;
+          default:
+            break;
+          }
+          xQueueSend(system_message_queue, (void *)&message, (TickType_t)0);
           ESP_LOGI(NEC_TAG, "Button press registered: %s\n",
-                   button_names[mapFromInt(rmt_cmd)]);
+                   button_names[map_from_int(rmt_cmd)]);
 
         } else {
           break;
