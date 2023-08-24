@@ -21,7 +21,8 @@
 #define I2C_MASTER_FREQ_HZ                                                     \
     400000 /*!< I2C clock of SSD1306 can run at 400 kHz max. */
 
-void i2c_master_init(SSD1306_t *dev, int16_t sda, int16_t scl, int16_t reset) {
+void i2c_master_init(SSD1306_t *dev, int16_t sda, int16_t scl, int16_t reset)
+{
     i2c_config_t i2c_config = {.mode = I2C_MODE_MASTER,
                                .sda_io_num = sda,
                                .scl_io_num = scl,
@@ -43,7 +44,8 @@ void i2c_master_init(SSD1306_t *dev, int16_t sda, int16_t scl, int16_t reset) {
     dev->_flip = false;
 }
 
-void i2c_init(SSD1306_t *dev, int width, int height) {
+void i2c_init(SSD1306_t *dev, int width, int height)
+{
     dev->_width = width;
     dev->_height = height;
     dev->_pages = 8;
@@ -65,8 +67,8 @@ void i2c_init(SSD1306_t *dev, int width, int height) {
     i2c_master_write_byte(cmd, 0x00, true);
     // i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);	// 40
     i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_START_LINE, true); // 40
-    // i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP, true);		//
-    // A1
+    // i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP, true);
+    // // A1
     if (dev->_flip) {
         i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_0, true); // A0
     } else {
@@ -111,7 +113,8 @@ void i2c_init(SSD1306_t *dev, int width, int height) {
 }
 
 void i2c_display_image(SSD1306_t *dev, int page, int seg, uint8_t *images,
-                       int width) {
+                       int width)
+{
     i2c_cmd_handle_t cmd;
 
     if (page >= dev->_pages)
@@ -156,7 +159,8 @@ void i2c_display_image(SSD1306_t *dev, int page, int seg, uint8_t *images,
     i2c_cmd_link_delete(cmd);
 }
 
-void i2c_contrast(SSD1306_t *dev, int contrast) {
+void i2c_contrast(SSD1306_t *dev, int contrast)
+{
     i2c_cmd_handle_t cmd;
     int _contrast = contrast;
     if (contrast < 0x0)
@@ -175,7 +179,8 @@ void i2c_contrast(SSD1306_t *dev, int contrast) {
     i2c_cmd_link_delete(cmd);
 }
 
-void i2c_hardware_scroll(SSD1306_t *dev, ssd1306_scroll_type_t scroll) {
+void i2c_hardware_scroll(SSD1306_t *dev, ssd1306_scroll_type_t scroll)
+{
     esp_err_t espRc;
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();

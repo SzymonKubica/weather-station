@@ -45,7 +45,8 @@ float get_temperature() { return temperature; }
 
 // == error handler ===============================================
 
-void handle_errors(int response) {
+void handle_errors(int response)
+{
     switch (response) {
 
     case DHT_TIMEOUT_ERROR:
@@ -73,7 +74,8 @@ void handle_errors(int response) {
 ;
 ;--------------------------------------------------------------------------------*/
 
-int get_signal_level(int usTimeOut, bool state) {
+int get_signal_level(int usTimeOut, bool state)
+{
 
     int uSec = 0;
     while (gpio_get_level(DHTgpio) == state) {
@@ -130,7 +132,8 @@ last 50us, the following high-voltage-level signal's length decide the bit is
 
 #define MAXdhtData 5 // to complete 40 = 5*8 Bits
 
-int read_dht() {
+int read_dht()
+{
     int uSec = 0;
 
     uint8_t dhtData[MAXdhtData];

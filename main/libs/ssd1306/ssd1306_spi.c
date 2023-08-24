@@ -24,7 +24,8 @@ static const int SPI_Data_Mode = 1;
 static const int SPI_Frequency = 1000000; // 1MHz
 
 void spi_master_init(SSD1306_t *dev, int16_t GPIO_MOSI, int16_t GPIO_SCLK,
-                     int16_t GPIO_CS, int16_t GPIO_DC, int16_t GPIO_RESET) {
+                     int16_t GPIO_CS, int16_t GPIO_DC, int16_t GPIO_RESET)
+{
     esp_err_t ret;
 
     // gpio_pad_select_gpio( GPIO_CS );
@@ -76,7 +77,8 @@ void spi_master_init(SSD1306_t *dev, int16_t GPIO_MOSI, int16_t GPIO_SCLK,
 }
 
 bool spi_master_write_byte(spi_device_handle_t SPIHandle, const uint8_t *Data,
-                           size_t DataLength) {
+                           size_t DataLength)
+{
     spi_transaction_t SPITransaction;
 
     if (DataLength > 0) {
@@ -89,7 +91,8 @@ bool spi_master_write_byte(spi_device_handle_t SPIHandle, const uint8_t *Data,
     return true;
 }
 
-bool spi_master_write_command(SSD1306_t *dev, uint8_t Command) {
+bool spi_master_write_command(SSD1306_t *dev, uint8_t Command)
+{
     static uint8_t CommandByte = 0;
     CommandByte = Command;
     gpio_set_level(dev->_dc, SPI_Command_Mode);
@@ -97,12 +100,14 @@ bool spi_master_write_command(SSD1306_t *dev, uint8_t Command) {
 }
 
 bool spi_master_write_data(SSD1306_t *dev, const uint8_t *Data,
-                           size_t DataLength) {
+                           size_t DataLength)
+{
     gpio_set_level(dev->_dc, SPI_Data_Mode);
     return spi_master_write_byte(dev->_SPIHandle, Data, DataLength);
 }
 
-void spi_init(SSD1306_t *dev, int width, int height) {
+void spi_init(SSD1306_t *dev, int width, int height)
+{
     dev->_width = width;
     dev->_height = height;
     dev->_pages = 8;
@@ -123,8 +128,8 @@ void spi_init(SSD1306_t *dev, int width, int height) {
     } else {
         spi_master_write_command(dev, OLED_CMD_SET_SEGMENT_REMAP_1); // A1
     }
-    // spi_master_write_command(dev, OLED_CMD_SET_SEGMENT_REMAP);		//
-    // A1
+    // spi_master_write_command(dev, OLED_CMD_SET_SEGMENT_REMAP);
+    // // A1
     spi_master_write_command(dev, OLED_CMD_SET_COM_SCAN_MODE);   // C8
     spi_master_write_command(dev, OLED_CMD_SET_DISPLAY_CLK_DIV); // D5
     spi_master_write_command(dev, 0x80);
@@ -153,7 +158,8 @@ void spi_init(SSD1306_t *dev, int width, int height) {
 }
 
 void spi_display_image(SSD1306_t *dev, int page, int seg, uint8_t *images,
-                       int width) {
+                       int width)
+{
     if (page >= dev->_pages)
         return;
     if (seg >= dev->_width)
@@ -178,7 +184,8 @@ void spi_display_image(SSD1306_t *dev, int page, int seg, uint8_t *images,
     spi_master_write_data(dev, images, width);
 }
 
-void spi_contrast(SSD1306_t *dev, int contrast) {
+void spi_contrast(SSD1306_t *dev, int contrast)
+{
     int _contrast = contrast;
     if (contrast < 0x0)
         _contrast = 0;
@@ -189,7 +196,8 @@ void spi_contrast(SSD1306_t *dev, int contrast) {
     spi_master_write_command(dev, _contrast);
 }
 
-void spi_hardware_scroll(SSD1306_t *dev, ssd1306_scroll_type_t scroll) {
+void spi_hardware_scroll(SSD1306_t *dev, ssd1306_scroll_type_t scroll)
+{
 
     if (scroll == SCROLL_RIGHT) {
         spi_master_write_command(dev, OLED_CMD_HORIZONTAL_RIGHT); // 26
