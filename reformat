@@ -1,0 +1,2 @@
+#!/bin/bash
+find main/ -iname \*.c -o -iname \*.h | grep -v CMake | xargs clang-format -i
