@@ -63,7 +63,8 @@ struct SystemMessage {
     enum SystemAction system_action;
 } system_message;
 
-void app_main(void) {
+void app_main(void)
+{
     configure_gpio_outputs();
     initialize_non_volatile_flash();
     esp_log_level_set("*", ESP_LOG_INFO);
@@ -88,7 +89,8 @@ void app_main(void) {
 
 static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
 
-static void system_task(void *pvParameter) {
+static void system_task(void *pvParameter)
+{
     struct SystemMessage *received_message;
     struct DisplayMessage *message = &display_message;
 
@@ -117,7 +119,8 @@ static void system_task(void *pvParameter) {
     }
 }
 
-static void toggle_led(bool *led_on) {
+static void toggle_led(bool *led_on)
+{
     if (*led_on) {
         gpio_set_level(GPIO_OUTPUT_IO_0, 1);
         *led_on = false;
@@ -127,7 +130,8 @@ static void toggle_led(bool *led_on) {
     }
 }
 
-static void display_task(void *pvParameter) {
+static void display_task(void *pvParameter)
+{
     ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
     SSD1306_t dev;
     initialise_display(&dev);
@@ -162,7 +166,8 @@ static void display_task(void *pvParameter) {
     }
 }
 
-static void temperature_monitor_task(void *pvParameter) {
+static void temperature_monitor_task(void *pvParameter)
+{
 
     ESP_LOGI(DHT_TAG, "Initialising the DHT Sensor...\n\n");
     set_dht_gpio(GPIO_NUM_4);
@@ -188,7 +193,8 @@ static void temperature_monitor_task(void *pvParameter) {
 
 static void get_nec_ring_buffer(RingbufHandle_t *rb);
 
-static void rmt_nex_rx_continuous_task(void *pvParameter) {
+static void rmt_nex_rx_continuous_task(void *pvParameter)
+{
     if (!ir_remote_input_queue) {
         ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
     }
@@ -246,7 +252,8 @@ static void rmt_nex_rx_continuous_task(void *pvParameter) {
     }
 }
 
-static void get_nec_ring_buffer(RingbufHandle_t *rb) {
+static void get_nec_ring_buffer(RingbufHandle_t *rb)
+{
     int channel = RMT_RX_CHANNEL;
     nec_rx_init();
     rmt_get_ringbuf_handle(channel, rb);
