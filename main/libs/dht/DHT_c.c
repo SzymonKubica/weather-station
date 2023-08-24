@@ -1,26 +1,28 @@
 /*------------------------------------------------------------------------------
 
-	DHT22 temperature & humidity sensor AM2302 (DHT22) driver for ESP32
+        DHT22 temperature & humidity sensor AM2302 (DHT22) driver for ESP32
 
-	Jun 2017:	Ricardo Timmermann, new for DHT22
+        Jun 2017:	Ricardo Timmermann, new for DHT22
 
-	Code Based on Adafruit Industries and Sam Johnston and Coffe & Beer. Please help
-	to improve this code.
+        Code Based on Adafruit Industries and Sam Johnston and Coffe & Beer.
+Please help to improve this code.
 
-	This example code is in the Public Domain (or CC0 licensed, at your option.)
+        This example code is in the Public Domain (or CC0 licensed, at your
+option.)
 
-	Unless required by applicable law or agreed to in writing, this
-	software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-	CONDITIONS OF ANY KIND, either express or implied.
+        Unless required by applicable law or agreed to in writing, this
+        software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+        CONDITIONS OF ANY KIND, either express or implied.
 
-	PLEASE KEEP THIS CODE IN LESS THAN 0XFF LINES. EACH LINE MAY CONTAIN ONE BUG !!!
+        PLEASE KEEP THIS CODE IN LESS THAN 0XFF LINES. EACH LINE MAY CONTAIN ONE
+BUG !!!
 
 ---------------------------------------------------------------------------------*/
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
-#include "esp_log.h"
 #include "driver/gpio.h"
+#include "esp_log.h"
 
 #include "DHT.h"
 
@@ -34,10 +36,7 @@ float temperature = 0.;
 
 // == set the DHT used pin=========================================
 
-void set_dht_gpio(int gpio)
-{
-    DHTgpio = gpio;
-}
+void set_dht_gpio(int gpio) { DHTgpio = gpio; }
 
 // == get temp & hum =============================================
 
@@ -46,10 +45,8 @@ float get_temperature() { return temperature; }
 
 // == error handler ===============================================
 
-void handle_errors(int response)
-{
-    switch (response)
-    {
+void handle_errors(int response) {
+    switch (response) {
 
     case DHT_TIMEOUT_ERROR:
         ESP_LOGE(TAG, "Sensor Timeout\n");
@@ -76,12 +73,10 @@ void handle_errors(int response)
 ;
 ;--------------------------------------------------------------------------------*/
 
-int get_signal_level(int usTimeOut, bool state)
-{
+int get_signal_level(int usTimeOut, bool state) {
 
     int uSec = 0;
-    while (gpio_get_level(DHTgpio) == state)
-    {
+    while (gpio_get_level(DHTgpio) == state) {
 
         if (uSec > usTimeOut)
             return -1;
@@ -105,16 +100,17 @@ Example: MCU has received 40 bits data from AM2302 as
 0000 0010 1000 1100 0000 0001 0101 1111 1110 1110
 16 bits RH data + 16 bits T data + check sum
 
-1) we convert 16 bits RH data from binary system to decimal system, 0000 0010 1000 1100 → 652
-Binary system Decimal system: RH=652/10=65.2%RH
+1) we convert 16 bits RH data from binary system to decimal system, 0000 0010
+1000 1100 → 652 Binary system Decimal system: RH=652/10=65.2%RH
 
-2) we convert 16 bits T data from binary system to decimal system, 0000 0001 0101 1111 → 351
-Binary system Decimal system: T=351/10=35.1°C
+2) we convert 16 bits T data from binary system to decimal system, 0000 0001
+0101 1111 → 351 Binary system Decimal system: T=351/10=35.1°C
 
-When highest bit of temperature is 1, it means the temperature is below 0 degree Celsius.
-Example: 1000 0000 0110 0101, T= minus 10.1°C: 16 bits T data
+When highest bit of temperature is 1, it means the temperature is below 0 degree
+Celsius. Example: 1000 0000 0110 0101, T= minus 10.1°C: 16 bits T data
 
-3) Check Sum=0000 0010+1000 1100+0000 0001+0101 1111=1110 1110 Check-sum=the last 8 bits of Sum=11101110
+3) Check Sum=0000 0010+1000 1100+0000 0001+0101 1111=1110 1110 Check-sum=the
+last 8 bits of Sum=11101110
 
 Signal & Timings:
 
@@ -124,19 +120,17 @@ To request data from DHT:
 
 1) Sent low pulse for > 1~10 ms (MILI SEC)
 2) Sent high pulse for > 20~40 us (Micros).
-3) When DHT detects the start signal, it will pull low the bus 80us as response signal,
-   then the DHT pulls up 80us for preparation to send data.
-4) When DHT is sending data to MCU, every bit's transmission begin with low-voltage-level that last 50us,
-   the following high-voltage-level signal's length decide the bit is "1" or "0".
-	0: 26~28 us
-	1: 70 us
+3) When DHT detects the start signal, it will pull low the bus 80us as response
+signal, then the DHT pulls up 80us for preparation to send data. 4) When DHT is
+sending data to MCU, every bit's transmission begin with low-voltage-level that
+last 50us, the following high-voltage-level signal's length decide the bit is
+"1" or "0". 0: 26~28 us 1: 70 us
 
 ;----------------------------------------------------------------------------*/
 
 #define MAXdhtData 5 // to complete 40 = 5*8 Bits
 
-int read_dht()
-{
+int read_dht() {
     int uSec = 0;
 
     uint8_t dhtData[MAXdhtData];
@@ -176,8 +170,7 @@ int read_dht()
 
     // == No errors, read the 40 data bits ================
 
-    for (int k = 0; k < 40; k++)
-    {
+    for (int k = 0; k < 40; k++) {
 
         // -- starts new data transmission with >50us low signal
 
@@ -195,19 +188,16 @@ int read_dht()
         // since all dhtData array where set to 0 at the start,
         // only look for "1" (>28us us)
 
-        if (uSec > 40)
-        {
+        if (uSec > 40) {
             dhtData[byteInx] |= (1 << bitInx);
         }
 
         // index to next byte
 
-        if (bitInx == 0)
-        {
+        if (bitInx == 0) {
             bitInx = 7;
             ++byteInx;
-        }
-        else
+        } else
             bitInx--;
     }
 
@@ -231,7 +221,8 @@ int read_dht()
     // == verify if checksum is ok ===========================================
     // Checksum is the sum of Data 8 bits masked out 0xFF
 
-    if (dhtData[4] == ((dhtData[0] + dhtData[1] + dhtData[2] + dhtData[3]) & 0xFF))
+    if (dhtData[4] ==
+        ((dhtData[0] + dhtData[1] + dhtData[2] + dhtData[3]) & 0xFF))
         return DHT_OK;
 
     else

@@ -1,5 +1,5 @@
 /*
-	DHT22 temperature sensor driver
+        DHT22 temperature sensor driver
 */
 
 #ifndef DHT_H_
