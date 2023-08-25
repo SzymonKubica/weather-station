@@ -79,10 +79,10 @@ void app_main(void)
     xTaskCreate(&temperature_monitor_task, "dht-22", 2048, NULL, 5,
                 &task_1_handle);
 
-    xTaskCreatePinnedToCore(&rmt_nex_rx_continuous_task, "rmt_nec_rx", 4096,
-                            NULL, 10, &task_2_handle, 0);
-    xTaskCreatePinnedToCore(&display_task, "display", 4096, NULL, 5,
-                            &task_3_handle, 0);
+    xTaskCreate(&rmt_nex_rx_continuous_task, "rmt_nec_rx", 4096,
+                            NULL, 10, &task_2_handle);
+    xTaskCreate(&display_task, "display", 4096, NULL, 5,
+                            &task_3_handle);
 
     fflush(stdout);
 }
