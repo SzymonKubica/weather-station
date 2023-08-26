@@ -1,14 +1,8 @@
+#include "system_message.h"
+QueueHandle_t ir_remote_input_queue = NULL;
+QueueHandle_t system_msg_queue = NULL;
+QueueHandle_t display_msg_queue = NULL;
 
-struct IRRemoteMessage {
-    enum RemoteButton pressed_button;
-} ir_remote_message;
-
-struct DisplayMessage {
-    enum DisplayAction requested_action;
-    float temperature;
-    float humidity;
-} display_message;
-
-struct SystemMessage {
-    enum SystemAction system_action;
-} system_message;
+struct IRRemoteMessage ir_remote_message;
+struct DisplayMessage display_message;
+struct SystemMessage system_message;

@@ -6,16 +6,24 @@
 
 struct IRRemoteMessage {
     enum RemoteButton pressed_button;
-} ir_remote_message;
+};
 
 struct DisplayMessage {
     enum DisplayAction requested_action;
     float temperature;
     float humidity;
-} display_message;
+};
 
 struct SystemMessage {
     enum SystemAction system_action;
-} system_message;
+};
+
+extern QueueHandle_t ir_remote_input_queue;
+extern QueueHandle_t system_msg_queue;
+extern QueueHandle_t display_msg_queue;
+
+extern struct IRRemoteMessage ir_remote_message;
+extern struct DisplayMessage display_message;
+extern struct SystemMessage system_message;
 
 #endif
