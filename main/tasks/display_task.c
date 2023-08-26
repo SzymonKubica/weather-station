@@ -11,6 +11,8 @@
  * to requests that appear on that queue.
  */
 
+static SSD1306_t dev;
+
 static void initialize_display(struct Display *display);
 static void screen_on(struct Display *display);
 static void screen_off(struct Display *display);
@@ -46,7 +48,6 @@ void display_task(void *pvParameter)
 
 static void initialize_display(struct Display *display) {
     ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
-    SSD1306_t dev;
     initialise_screen_device(&dev);
     display->display_mode = TEMPERATURE_AND_HUMIDITY;
     display->device = &dev;
