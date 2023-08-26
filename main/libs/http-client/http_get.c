@@ -26,7 +26,12 @@
 /* Constants that aren't configurable in menuconfig */
 #define WEB_SERVER "api.open-meteo.com"
 #define WEB_PORT "80"
-#define WEB_PATH "/v1/forecast?latitude=51.5085&longitude=-0.1257&hourly=temperature_2m,relativehumidity_2m,apparent_temperature&daily=sunrise,sunset,precipitation_probability_max&timezone=Europe%2FLondon&models=best_match"
+#define WEB_PATH                                                               \
+    "/v1/"                                                                     \
+    "forecast?latitude=51.5085&longitude=-0.1257&hourly=temperature_2m,"       \
+    "relativehumidity_2m,apparent_temperature&daily=sunrise,sunset,"           \
+    "precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=3&"  \
+    "models=best_match"
 
 static const char *TAG = "example";
 
@@ -34,6 +39,9 @@ static const char *REQUEST = "GET " WEB_PATH " HTTP/1.0\r\n"
                              "Host: " WEB_SERVER " \r\n"
                              "User-Agent: esp-idf/1.0 esp32\r\n"
                              "\r\n";
+
+void extract_json_from_response(char *response, char *json_string,
+                                int response_length);
 
 void http_get_task(void *pvParameters)
 {
@@ -46,8 +54,6 @@ void http_get_task(void *pvParameters)
     struct in_addr *addr;
     int s, r;
     char recv_buf[64];
-    char response[30000];
-    char *response_ptr = response;
 
     while (1) {
         int err = getaddrinfo(WEB_SERVER, WEB_PORT, &hints, &res);
@@ -105,6 +111,9 @@ void http_get_task(void *pvParameters)
         }
         ESP_LOGI(TAG, "... set socket receiving timeout success");
 
+        char *response = calloc(10000, sizeof(char));
+        char *response_ptr = response;
+
         /* Read HTTP response */
         do {
             bzero(recv_buf, sizeof(recv_buf));
@@ -115,9 +124,18 @@ void http_get_task(void *pvParameters)
             }
         } while (r > 0);
 
-        printf("%s", response);
-        cJSON *json = cJSON_Parse(response);
+        int response_length = response_ptr - response;
+        for (int i = 0; i < response_length; i++) {
+            putchar(*(response + i));
+        }
+        printf("\n");
 
+        char *json_string = calloc(10000, sizeof(char));
+        extract_json_from_response(response, json_string, response_length);
+        free(response);
+
+        cJSON *json = cJSON_Parse(json_string);
+        printf("%s", json->child->string);
         ESP_LOGI(TAG,
                  "... done reading from socket. Last read return=%d errno=%d.",
                  r, errno);
@@ -126,6 +144,22 @@ void http_get_task(void *pvParameters)
             ESP_LOGI(TAG, "%d... ", countdown);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
+        free(json_string);
         ESP_LOGI(TAG, "Starting again!");
+    }
+}
+
+void extract_json_from_response(char *response, char *json_string,
+                                int response_length)
+{
+    char *response_ptr = response;
+    while (*response_ptr != '{') {
+        response_ptr++;
+    }
+    int traversed_distance = response_ptr - response;
+    for (int i = 0; i < response_length - traversed_distance; i++) {
+        *json_string = *response_ptr;
+        json_string++;
+        response_ptr++;
     }
 }
