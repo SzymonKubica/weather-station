@@ -6,6 +6,7 @@ set(srcs
     "util/util.c"
     "util/logging.c"
     "model/system_action.c"
+    "model/onboard_led.c"
     )
 set(includes "libs"
   "gpio" "display" "util" "model")

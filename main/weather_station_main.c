@@ -23,9 +23,9 @@
 // Project module imports
 #include "display/display.h"
 #include "gpio/gpio_util.h"
+#include "model/onboard_led.h"
 #include "model/system_action.h"
 #include "model/system_message.h"
-#include "model/onboard_led.h"
 #include "util/util.h"
 
 #define DHT_TAG "DHT"
@@ -39,8 +39,8 @@ TaskHandle_t task_2_handle = NULL;
 TaskHandle_t task_3_handle = NULL;
 
 static QueueHandle_t ir_remote_input_queue = NULL;
-static QueueHandle_t system_message_queue = NULL;
-static QueueHandle_t display_message_queue = NULL;
+static QueueHandle_t system_msg_queue = NULL;
+static QueueHandle_t display_msg_queue = NULL;
 
 static void system_task(void *pvParameter);
 static void dht_task(void *pvParameter);
@@ -58,8 +58,8 @@ void app_main(void)
     disable_led_by_default();
 
     ir_remote_input_queue = xQueueCreate(10, sizeof(struct IRRemoteMessage *));
-    system_message_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
-    display_message_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
+    system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
+    display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
@@ -69,38 +69,40 @@ void app_main(void)
     fflush(stdout);
 }
 
+static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
+
+static void send_display_msg(enum DisplayAction message);
+
 static void system_task(void *pvParameter)
 {
     struct SystemMessage *received_message;
 
-    struct DisplayMessage *message = &display_message;
-
-    bool led_on = true;
-
     while (true) {
-        if (xQueueReceive(system_message_queue, &(received_message),
+        if (xQueueReceive(system_msg_queue, &(received_message),
                           (TickType_t)5)) {
+            enum SystemAction action = received_message->system_action;
             ESP_LOGI(SYSTEM_TAG, "Received an incoming system message: %s",
-                     system_action_names[received_message->system_action]);
-            switch (received_message->system_action) {
+                     system_action_str[action]);
+            switch (action) {
             case TOGGLE_ONBOARD_LED:
                 toggle_onboard_led();
                 break;
             case DISPLAY_OFF:
-                message->requested_action = SCREEN_OFF;
-                xQueueSend(display_message_queue, (void *)&message,
-                           (TickType_t)0);
+                send_display_msg(SCREEN_OFF);
                 break;
             case DISPLAY_ON:
-                message->requested_action = SCREEN_ON;
-                xQueueSend(display_message_queue, (void *)&message,
-                           (TickType_t)0);
+                send_display_msg(SCREEN_ON);
             }
         }
     }
 }
 
-static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
+static void send_display_msg(enum DisplayAction action)
+{
+    struct DisplayMessage *message = &display_message;
+    message->requested_action = action;
+    xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
+}
 
 static void display_task(void *pvParameter)
 {
@@ -108,29 +110,30 @@ static void display_task(void *pvParameter)
     SSD1306_t dev;
     initialise_display(&dev);
 
-    bool display_on = true;
-    float temperature = 0.0;
-    float humidity = 0.0;
+    struct DisplayState display = {TEMPERATURE_AND_HUMIDITY, 0.0, 0.0, true};
     struct DisplayMessage *received_message;
 
     while (true) {
-        if (xQueueReceive(display_message_queue, &(received_message),
+        if (xQueueReceive(display_msg_queue, &(received_message),
                           (TickType_t)5)) {
 
             switch (received_message->requested_action) {
             case SCREEN_ON:
-                display_on = true;
-                print_temperature_and_humidity(&dev, temperature, humidity);
+                display.is_on = true;
+                print_temperature_and_humidity(&dev, display.temperature,
+                                               display.humidity);
                 break;
             case SCREEN_OFF:
                 ssd1306_clear_screen(&dev, false);
-                display_on = false;
+                display.is_on = false;
                 break;
             case SHOW_DHT_READING:
-                if (display_on) {
-                    temperature = received_message->temperature;
-                    humidity = received_message->humidity;
-                    print_temperature_and_humidity(&dev, temperature, humidity);
+                if (display.is_on) {
+                    display.temperature = received_message->temperature;
+                    display.humidity = received_message->humidity;
+
+                    print_temperature_and_humidity(&dev, display.temperature,
+                                                   display.humidity);
                 }
                 break;
             }
@@ -158,7 +161,7 @@ static void dht_task(void *pvParameter)
         message->requested_action = SHOW_DHT_READING;
         message->temperature = temperature;
         message->humidity = humidity;
-        xQueueSend(display_message_queue, (void *)&message, (TickType_t)0);
+        xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 
         wait_seconds(3);
     }
@@ -211,10 +214,10 @@ static void ir_remote_task(void *pvParameter)
                     default:
                         break;
                     }
-                    xQueueSend(system_message_queue, (void *)&message,
+                    xQueueSend(system_msg_queue, (void *)&message,
                                (TickType_t)0);
                     ESP_LOGI(NEC_TAG, "Button press registered: %s\n",
-                             button_names[map_from_int(rmt_cmd)]);
+                             button_str[map_from_int(rmt_cmd)]);
 
                 } else {
                     break;

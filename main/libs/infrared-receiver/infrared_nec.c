@@ -24,7 +24,7 @@
 
 #define IR_TAG "IR_RX"
 
-const char *button_names[] = {
+const char *button_str[] = {
     "Zero",       "One",
     "Two",        "Three",
     "Four",       "Five",

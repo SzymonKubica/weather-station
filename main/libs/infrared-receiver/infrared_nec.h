@@ -115,6 +115,6 @@ enum RemoteButton {
 };
 
 extern enum RemoteButton map_from_int(int data_value);
-extern const char *button_names[];
+extern const char *button_str[];
 
 #endif
