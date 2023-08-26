@@ -29,3 +29,7 @@ void initialise_display(SSD1306_t *dev)
     ssd1306_init(dev, 128, 64);
     ssd1306_clear_screen(dev, false);
 }
+
+const char *display_mode_str[] = {
+    [TEMPERATURE_AND_HUMIDITY] = "TEMPERATURE_AND_HUMIDITY"
+};
