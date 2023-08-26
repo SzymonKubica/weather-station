@@ -13,6 +13,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
+#include "json/cJSON.h"
 #include <string.h>
 
 #include "lwip/dns.h"
@@ -45,6 +46,8 @@ void http_get_task(void *pvParameters)
     struct in_addr *addr;
     int s, r;
     char recv_buf[64];
+    char response[30000];
+    char *response_ptr = response;
 
     while (1) {
         int err = getaddrinfo(WEB_SERVER, WEB_PORT, &hints, &res);
@@ -107,9 +110,13 @@ void http_get_task(void *pvParameters)
             bzero(recv_buf, sizeof(recv_buf));
             r = read(s, recv_buf, sizeof(recv_buf) - 1);
             for (int i = 0; i < r; i++) {
-                putchar(recv_buf[i]);
+                *response_ptr = recv_buf[i];
+                response_ptr++;
             }
         } while (r > 0);
+
+        printf("%s", response);
+        cJSON *json = cJSON_Parse(response);
 
         ESP_LOGI(TAG,
                  "... done reading from socket. Last read return=%d errno=%d.",
