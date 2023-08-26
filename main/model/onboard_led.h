@@ -8,5 +8,6 @@ struct OnboardLED {
 };
 
 void toggle_onboard_led();
+void disable_led_by_default();
 
 #endif

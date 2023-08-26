@@ -4,6 +4,8 @@
 
 static struct OnboardLED onboard_led;
 
+void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
+
 void toggle_onboard_led()
 {
     struct OnboardLED *led = &onboard_led;
