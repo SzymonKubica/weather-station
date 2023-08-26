@@ -10,10 +10,9 @@
 #include "esp_log.h"
 #include "esp_system.h"
 
+#include "driver/gpio.h"
 #include "hal/gpio_types.h"
 #include "sdkconfig.h"
-
-#include "driver/gpio.h"
 
 // External library imports
 #include "libs/dht/DHT.h"
@@ -25,6 +24,7 @@
 #include "display/display.h"
 #include "gpio/gpio_util.h"
 #include "model/system_action.h"
+#include "model/system_message.h"
 #include "util/util.h"
 
 #define DHT_TAG "DHT"
@@ -42,26 +42,12 @@ static QueueHandle_t system_message_queue = NULL;
 static QueueHandle_t display_message_queue = NULL;
 
 static void system_task(void *pvParameter);
-static void temperature_monitor_task(void *pvParameter);
+static void dht_task(void *pvParameter);
 static void display_task(void *pvParameter);
-static void rmt_nex_rx_continuous_task(void *pvParameter);
+static void ir_remote_task(void *pvParameter);
 
 static void disable_led_by_default();
 static void toggle_led(bool *led_on);
-
-struct IRRemoteMessage {
-    enum RemoteButton pressed_button;
-} ir_remote_message;
-
-struct DisplayMessage {
-    enum DisplayAction requested_action;
-    float temperature;
-    float humidity;
-} display_message;
-
-struct SystemMessage {
-    enum SystemAction system_action;
-} system_message;
 
 void app_main(void)
 {
@@ -76,18 +62,13 @@ void app_main(void)
     display_message_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
-    xTaskCreate(&temperature_monitor_task, "dht-22", 2048, NULL, 5,
-                &task_1_handle);
-
-    xTaskCreate(&rmt_nex_rx_continuous_task, "rmt_nec_rx", 4096,
-                            NULL, 10, &task_2_handle);
-    xTaskCreate(&display_task, "display", 4096, NULL, 5,
-                            &task_3_handle);
+    xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
+    xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);
+    xTaskCreate(&display_task, "display", 4096, NULL, 5, &task_3_handle);
 
     fflush(stdout);
 }
 
-static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
 
 static void system_task(void *pvParameter)
 {
@@ -130,6 +111,8 @@ static void toggle_led(bool *led_on)
     }
 }
 
+static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
+
 static void display_task(void *pvParameter)
 {
     ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
@@ -166,7 +149,7 @@ static void display_task(void *pvParameter)
     }
 }
 
-static void temperature_monitor_task(void *pvParameter)
+static void dht_task(void *pvParameter)
 {
 
     ESP_LOGI(DHT_TAG, "Initialising the DHT Sensor...\n\n");
@@ -193,7 +176,7 @@ static void temperature_monitor_task(void *pvParameter)
 
 static void get_nec_ring_buffer(RingbufHandle_t *rb);
 
-static void rmt_nex_rx_continuous_task(void *pvParameter)
+static void ir_remote_task(void *pvParameter)
 {
     if (!ir_remote_input_queue) {
         ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
