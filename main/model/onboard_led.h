@@ -1,12 +1,12 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef ONBOARD_LED_H
+#define ONBOARD_LED_H
 
 #include <stdbool.h>
 
 struct OnboardLED {
     bool is_on;
-} onboard_led;
+};
 
-extern void toggle_onboard_led();
+void toggle_onboard_led();
 
 #endif
