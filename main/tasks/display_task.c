@@ -5,17 +5,22 @@
 #include "system_action.h"
 #include "system_message.h"
 
+/*
+ * Display task is responsible for displaying information on the
+ * OLED display. It listens to the display message queue and reacts
+ * to requests that appear on that queue.
+ */
+
+static void initialize_display(struct Display *display);
 static void screen_on(struct Display *display);
 static void screen_off(struct Display *display);
 static void show_temperature(struct Display *display);
 
 void display_task(void *pvParameter)
 {
-    ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
-    SSD1306_t dev;
-    initialise_screen_device(&dev);
+    struct Display display;
+    initialize_display(&display);
 
-    struct Display display = {TEMPERATURE_AND_HUMIDITY, &dev, 0.0, 0.0, true};
     struct DisplayMessage *received_message;
 
     while (true) {
@@ -37,6 +42,17 @@ void display_task(void *pvParameter)
             }
         }
     }
+}
+
+static void initialize_display(struct Display *display) {
+    ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
+    SSD1306_t dev;
+    initialise_screen_device(&dev);
+    display->display_mode = TEMPERATURE_AND_HUMIDITY;
+    display->device = &dev;
+    display->is_on = true;
+    display->temperature = 0.0;
+    display->humidity = 0.0;
 }
 
 static void screen_on(struct Display *display)
