@@ -25,6 +25,7 @@
 #include "gpio/gpio_util.h"
 #include "model/system_action.h"
 #include "model/system_message.h"
+#include "model/onboard_led.h"
 #include "util/util.h"
 
 #define DHT_TAG "DHT"
@@ -47,7 +48,6 @@ static void display_task(void *pvParameter);
 static void ir_remote_task(void *pvParameter);
 
 static void disable_led_by_default();
-static void toggle_led(bool *led_on);
 
 void app_main(void)
 {
@@ -84,7 +84,7 @@ static void system_task(void *pvParameter)
                      system_action_names[received_message->system_action]);
             switch (received_message->system_action) {
             case TOGGLE_ONBOARD_LED:
-                toggle_led(&led_on);
+                toggle_onboard_led();
                 break;
             case DISPLAY_OFF:
                 message->requested_action = SCREEN_OFF;
@@ -97,17 +97,6 @@ static void system_task(void *pvParameter)
                            (TickType_t)0);
             }
         }
-    }
-}
-
-static void toggle_led(bool *led_on)
-{
-    if (*led_on) {
-        gpio_set_level(GPIO_OUTPUT_IO_0, 1);
-        *led_on = false;
-    } else {
-        gpio_set_level(GPIO_OUTPUT_IO_0, 0);
-        *led_on = true;
     }
 }
 

@@ -7,4 +7,6 @@ struct OnboardLED {
     bool is_on;
 } onboard_led;
 
+extern void toggle_onboard_led();
+
 #endif
