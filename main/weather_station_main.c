@@ -17,6 +17,7 @@
 // External library imports
 #include "libs/dht/DHT.h"
 #include "libs/infrared-receiver/infrared_nec.h"
+#include "libs/wifi/wifi.h"
 
 // Project module imports
 #include "display/display.h"
@@ -47,6 +48,7 @@ void app_main(void)
     esp_log_level_set("*", ESP_LOG_INFO);
 
     disable_led_by_default();
+    wifi_init_sta_default();
 
     ir_remote_input_queue = xQueueCreate(10, sizeof(struct IRRemoteMessage *));
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));

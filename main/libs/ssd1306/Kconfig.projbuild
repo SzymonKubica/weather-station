@@ -1,4 +1,4 @@
-menu "SSD1306 Configuration"
+menu "SSD1306 config"
 
 	config GPIO_RANGE_MAX
 		int
