@@ -69,10 +69,10 @@ void app_main(void)
     fflush(stdout);
 }
 
-
 static void system_task(void *pvParameter)
 {
     struct SystemMessage *received_message;
+
     struct DisplayMessage *message = &display_message;
 
     bool led_on = true;
@@ -156,6 +156,7 @@ static void dht_task(void *pvParameter)
     set_dht_gpio(GPIO_NUM_4);
 
     struct DisplayMessage *message = &display_message;
+
     while (true) {
         ESP_LOGI(DHT_TAG, "=== Reading DHT ===");
         int ret = read_dht();
@@ -186,6 +187,7 @@ static void ir_remote_task(void *pvParameter)
     get_nec_ring_buffer(&rb);
 
     struct SystemMessage *message = &system_message;
+
     while (rb) {
         size_t rx_size = 0;
         // try to receive data from ringbuffer.

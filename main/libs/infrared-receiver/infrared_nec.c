@@ -222,7 +222,7 @@ int nec_parse_items(rmt_item32_t *item, int item_num, uint16_t *addr,
     LOG_DEBUG(IR_TAG, "Number of NEC data items OK");
     int i = 0, j = 0;
     if (!nec_header_if(item++)) {
-        LOG_ERROR(IR_TAG, "Malformed NED header, parsing aborted.");
+        LOG_ERROR(IR_TAG, "Malformed NEC header, parsing aborted.");
         return -1;
     }
     LOG_DEBUG(IR_TAG, "NEC header OK");
