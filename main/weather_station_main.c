@@ -8,6 +8,7 @@
 #include "esp_chip_info.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_netif.h"
 #include "esp_system.h"
 
 #include "driver/gpio.h"
@@ -18,6 +19,7 @@
 #include "libs/dht/DHT.h"
 #include "libs/infrared-receiver/infrared_nec.h"
 #include "libs/wifi/wifi.h"
+#include "libs/http-client/http_get.h"
 
 // Project module imports
 #include "display/display.h"
@@ -54,6 +56,8 @@ void app_main(void)
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
+
+    xTaskCreate(&http_get_task, "http_get_task", 4096, NULL, 5, NULL);
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
     xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);

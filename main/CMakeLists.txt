@@ -1,6 +1,7 @@
 set(srcs
     "weather_station_main.c"
     "libs/dht/DHT_c.c"
+    "libs/http-client/http_get.c"
     "display/display.c"
     "gpio/gpio_util.c"
     "util/util.c"
