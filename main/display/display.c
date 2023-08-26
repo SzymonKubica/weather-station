@@ -17,7 +17,7 @@ void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
     ssd1306_display_text(dev, 6, humidity_buffer, 22, false);
 }
 
-void initialise_display(SSD1306_t *dev)
+void initialise_screen_device(SSD1306_t *dev)
 {
     ESP_LOGI(DISPLAY_TAG, "INTERFACE is i2c");
     ESP_LOGI(DISPLAY_TAG, "CONFIG_SDA_GPIO=%d", CONFIG_SDA_GPIO);

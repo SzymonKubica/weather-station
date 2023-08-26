@@ -17,8 +17,6 @@
 // External library imports
 #include "libs/dht/DHT.h"
 #include "libs/infrared-receiver/infrared_nec.h"
-#include "libs/ssd1306/font8x8_basic.h"
-#include "libs/ssd1306/ssd1306.h"
 
 // Project module imports
 #include "display/display.h"
@@ -28,26 +26,19 @@
 #include "model/system_message.h"
 #include "util/util.h"
 
-#define DHT_TAG "DHT"
-#define LED_TAG "ONBOARD_LED"
+// Weather station tasks
+#include "tasks/dht_task.h"
+#include "tasks/display_task.h"
+#include "tasks/ir_remote_task.h"
+
 #define SYSTEM_TAG "SYSTEM"
-#define NEC_TAG "NEC"
 
 TaskHandle_t task_0_handle = NULL;
 TaskHandle_t task_1_handle = NULL;
 TaskHandle_t task_2_handle = NULL;
 TaskHandle_t task_3_handle = NULL;
 
-static QueueHandle_t ir_remote_input_queue = NULL;
-static QueueHandle_t system_msg_queue = NULL;
-static QueueHandle_t display_msg_queue = NULL;
-
 static void system_task(void *pvParameter);
-static void dht_task(void *pvParameter);
-static void display_task(void *pvParameter);
-static void ir_remote_task(void *pvParameter);
-
-static void disable_led_by_default();
 
 void app_main(void)
 {
@@ -69,9 +60,8 @@ void app_main(void)
     fflush(stdout);
 }
 
-static void disable_led_by_default() { gpio_set_level(GPIO_OUTPUT_IO_0, 1); }
 
-static void send_display_msg(enum DisplayAction message);
+static void send_msg_to_screen(enum DisplayAction message);
 
 static void system_task(void *pvParameter)
 {
@@ -88,151 +78,18 @@ static void system_task(void *pvParameter)
                 toggle_onboard_led();
                 break;
             case DISPLAY_OFF:
-                send_display_msg(SCREEN_OFF);
+                send_msg_to_screen(SCREEN_OFF);
                 break;
             case DISPLAY_ON:
-                send_display_msg(SCREEN_ON);
+                send_msg_to_screen(SCREEN_ON);
             }
         }
     }
 }
 
-static void send_display_msg(enum DisplayAction action)
+static void send_msg_to_screen(enum DisplayAction action)
 {
     struct DisplayMessage *message = &display_message;
     message->requested_action = action;
     xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
-}
-
-static void display_task(void *pvParameter)
-{
-    ESP_LOGI(DISPLAY_TAG, "Initialising the OLED display...\n\n");
-    SSD1306_t dev;
-    initialise_display(&dev);
-
-    struct DisplayState display = {TEMPERATURE_AND_HUMIDITY, 0.0, 0.0, true};
-    struct DisplayMessage *received_message;
-
-    while (true) {
-        if (xQueueReceive(display_msg_queue, &(received_message),
-                          (TickType_t)5)) {
-
-            switch (received_message->requested_action) {
-            case SCREEN_ON:
-                display.is_on = true;
-                print_temperature_and_humidity(&dev, display.temperature,
-                                               display.humidity);
-                break;
-            case SCREEN_OFF:
-                ssd1306_clear_screen(&dev, false);
-                display.is_on = false;
-                break;
-            case SHOW_DHT_READING:
-                if (display.is_on) {
-                    display.temperature = received_message->temperature;
-                    display.humidity = received_message->humidity;
-
-                    print_temperature_and_humidity(&dev, display.temperature,
-                                                   display.humidity);
-                }
-                break;
-            }
-        }
-    }
-}
-
-static void dht_task(void *pvParameter)
-{
-
-    ESP_LOGI(DHT_TAG, "Initialising the DHT Sensor...\n\n");
-    set_dht_gpio(GPIO_NUM_4);
-
-    struct DisplayMessage *message = &display_message;
-
-    while (true) {
-        ESP_LOGI(DHT_TAG, "=== Reading DHT ===");
-        int ret = read_dht();
-        handle_errors(ret);
-
-        float humidity = get_humidity();
-        float temperature = get_temperature();
-        ESP_LOGI(DHT_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
-
-        message->requested_action = SHOW_DHT_READING;
-        message->temperature = temperature;
-        message->humidity = humidity;
-        xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
-
-        wait_seconds(3);
-    }
-}
-
-static void get_nec_ring_buffer(RingbufHandle_t *rb);
-
-static void ir_remote_task(void *pvParameter)
-{
-    if (!ir_remote_input_queue) {
-        ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
-    }
-
-    RingbufHandle_t rb = NULL;
-    get_nec_ring_buffer(&rb);
-
-    struct SystemMessage *message = &system_message;
-
-    while (rb) {
-        size_t rx_size = 0;
-        // try to receive data from ringbuffer.
-        // RMT driver will push all the data it receives to its ringbuffer.
-        // We just need to parse the value and return the spaces of ringbuffer.
-        rmt_item32_t *item =
-            (rmt_item32_t *)xRingbufferReceive(rb, &rx_size, 1000);
-        if (item) {
-            uint16_t rmt_addr;
-            uint16_t rmt_cmd;
-            int offset = 0;
-            while (1) {
-                // parse data value from ringbuffer.
-                int res = nec_parse_items(item + offset, rx_size / 4 - offset,
-                                          &rmt_addr, &rmt_cmd);
-                if (res > 0) {
-                    offset += res + 1;
-                    ESP_LOGI(NEC_TAG, "RMT RCV --- addr: 0x%04x cmd: 0x%04x",
-                             rmt_addr, rmt_cmd);
-
-                    enum RemoteButton registered_button = map_from_int(rmt_cmd);
-                    switch (registered_button) {
-                    case BUTTON_EQ:
-                        system_message.system_action = TOGGLE_ONBOARD_LED;
-                        break;
-                    case BUTTON_CHANNEL_MINUS:
-                        system_message.system_action = DISPLAY_OFF;
-                        break;
-                    case BUTTON_CHANNEL_PLUS:
-                        system_message.system_action = DISPLAY_ON;
-                        break;
-                    default:
-                        break;
-                    }
-                    xQueueSend(system_msg_queue, (void *)&message,
-                               (TickType_t)0);
-                    ESP_LOGI(NEC_TAG, "Button press registered: %s\n",
-                             button_str[map_from_int(rmt_cmd)]);
-
-                } else {
-                    break;
-                }
-            }
-            // after parsing the data, return spaces to ringbuffer.
-            vRingbufferReturnItem(rb, (void *)item);
-        }
-    }
-}
-
-static void get_nec_ring_buffer(RingbufHandle_t *rb)
-{
-    int channel = RMT_RX_CHANNEL;
-    nec_rx_init();
-    rmt_get_ringbuf_handle(channel, rb);
-    rmt_rx_start(channel, 1);
 }

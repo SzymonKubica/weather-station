@@ -11,14 +11,15 @@
 void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
                                     float humidity);
 
-void initialise_display(SSD1306_t *dev);
+void initialise_screen_device(SSD1306_t *dev);
 
 enum DisplayMode {
     TEMPERATURE_AND_HUMIDITY,
 };
 
-struct DisplayState {
+struct Display {
     enum DisplayMode display_mode;
+    SSD1306_t *device;
     float temperature;
     float humidity;
     bool is_on;
