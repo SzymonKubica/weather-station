@@ -1,5 +1,5 @@
 #ifndef DISPLAY_H
-#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include "../libs/ssd1306/ssd1306.h"
 #include "esp_log.h"

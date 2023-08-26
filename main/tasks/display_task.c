@@ -1,5 +1,5 @@
-#include "libs/ssd1306/font8x8_basic.h"
-#include "libs/ssd1306/ssd1306.h"
+#include "../libs/ssd1306/ssd1306.h"
+#include "../libs/ssd1306/font8x8_basic.h"
 
 #include "display.h"
 #include "system_action.h"
