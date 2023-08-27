@@ -17,9 +17,9 @@
 
 // External library imports
 #include "libs/dht/DHT.h"
+#include "libs/http-client/http_client.h"
 #include "libs/infrared-receiver/infrared_nec.h"
 #include "libs/wifi/wifi.h"
-#include "libs/http-client/http_get.h"
 
 // Project module imports
 #include "display/display.h"
@@ -43,6 +43,24 @@ TaskHandle_t task_3_handle = NULL;
 
 static void system_task(void *pvParameter);
 
+#define SERVER "api.open-meteo.com"
+#define PORT "80"
+#define PATH                                                                   \
+    "/v1/"                                                                     \
+    "forecast?latitude=51.5085&longitude=-0.1257&hourly=temperature_2m,"       \
+    "relativehumidity_2m,apparent_temperature&daily=sunrise,sunset,"           \
+    "precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=3&"  \
+    "models=best_match"
+
+char *WEB_SERVER = SERVER;
+char *WEB_PORT = PORT;
+char *WEB_PATH = PATH;
+
+char *REQUEST = "GET " PATH " HTTP/1.0\r\n"
+                "Host: " SERVER " \r\n"
+                "User-Agent: esp-idf/1.0 esp32\r\n"
+                "\r\n";
+
 void app_main(void)
 {
     configure_gpio_outputs();
@@ -56,8 +74,20 @@ void app_main(void)
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
+    struct Request *request = malloc(sizeof(struct Request));
+    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
+    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
+    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
+    request->body = calloc(strlen(REQUEST), sizeof(char));
+    request->max_attempts = 3;
 
-    xTaskCreate(&http_get_task, "http_get_task", 4096, NULL, 5, NULL);
+    strncpy(request->web_server, WEB_SERVER, strlen(WEB_SERVER) + 1);
+    strncpy(request->web_port, WEB_PORT, strlen(WEB_PORT) + 1);
+    strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
+    strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
+
+    xTaskCreate(&http_request_task, "http_get_task", 4096, (void *)request, 5,
+                NULL);
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
     xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);
@@ -65,7 +95,6 @@ void app_main(void)
 
     fflush(stdout);
 }
-
 
 static void send_msg_to_screen(enum DisplayAction message);
 
