@@ -34,9 +34,9 @@ int parse_daily_forecast(char *date, char *sunrise, char *sunset,
                          struct ForecastDaily *forecast);
 
 void extract_hourly_forecast(cJSON *response, int forecast_days,
-                        struct ForecastHourly *forecasts[]);
+                             struct ForecastHourly *forecasts[]);
 void extract_daily_forecast(cJSON *response, int forecast_days,
-                       struct ForecastDaily *forecasts[]);
+                            struct ForecastDaily *forecasts[]);
 
 void print_hourly_forecast(struct ForecastHourly *forecast);
 void print_daily_forecast(struct ForecastDaily *forecast);

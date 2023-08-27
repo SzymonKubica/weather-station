@@ -5,10 +5,10 @@
 
 #include "../libs/http-client/http_client.h"
 #include "../model/forecast.h"
+#include "../util/date_time.h"
 #include "esp_log.h"
 #include "system_action.h"
 #include "system_message.h"
-#include "../util/date_time.h"
 
 #define SERVER "api.open-meteo.com"
 #define PORT "80"
@@ -54,14 +54,18 @@ void weather_forecast_task(void *pvParameter)
             switch (received_message->forecast_request) {
             case WEATHER_NOW:
                 update_time();
-                print_hourly_forecast(forecasts[system_time.date_time_utc->tm_hour]);
-                send_weather_hourly_update(forecasts[system_time.date_time_utc->tm_hour]);
+                print_hourly_forecast(
+                    forecasts[system_time.date_time_utc->tm_hour]);
+                send_weather_hourly_update(
+                    forecasts[system_time.date_time_utc->tm_hour]);
                 break;
             case WEATHER_TODAY:
-                send_weather_daily_update(SHOW_WEATHER_TODAY, forecasts_daily[0]);
+                send_weather_daily_update(SHOW_WEATHER_TODAY,
+                                          forecasts_daily[0]);
                 break;
             case WEATHER_TOMORROW:
-                send_weather_daily_update(SHOW_WEATHER_TOMORROW, forecasts_daily[1]);
+                send_weather_daily_update(SHOW_WEATHER_TOMORROW,
+                                          forecasts_daily[1]);
                 break;
             case WEATHER_T2:
                 send_weather_daily_update(SHOW_WEATHER_T2, forecasts_daily[2]);
@@ -124,6 +128,4 @@ void send_weather_hourly_update(struct ForecastHourly *forecast)
     xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 }
 
-void assemble_request(struct Request *request)
-{
-}
+void assemble_request(struct Request *request) {}

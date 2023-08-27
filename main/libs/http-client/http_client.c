@@ -178,7 +178,6 @@ int read_response(int *socket, cJSON **extracted_response)
     return SOCKET_READ_SUCCESS;
 }
 
-
 void extract_json_from_response(char *response, char *json_string,
                                 int response_length)
 {

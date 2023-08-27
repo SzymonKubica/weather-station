@@ -1,5 +1,5 @@
-#include "../libs/http-client/http_client.h"
 #include "date_time.h"
+#include "../libs/http-client/http_client.h"
 #include "esp_log.h"
 #include "system_message.h"
 #include <stdlib.h>
@@ -18,9 +18,9 @@ char *TIME_SERVER_PORT = PORT;
 char *TIME_SERVER_PATH = PATH;
 
 char *TIME_REQUEST = "GET " PATH " HTTP/1.0\r\n"
-                "Host: " SERVER " \r\n"
-                "User-Agent: esp-idf/1.0 esp32\r\n"
-                "\r\n";
+                     "Host: " SERVER " \r\n"
+                     "User-Agent: esp-idf/1.0 esp32\r\n"
+                     "\r\n";
 
 void extract_time_data(cJSON *response);
 
@@ -51,7 +51,6 @@ void update_time()
     free(request->body);
     free(request);
 
-
     printf("%s\n", cJSON_Print(json));
     ESP_LOGI(TAG, "Extracting time data...");
     extract_time_data(json);
@@ -59,9 +58,11 @@ void update_time()
     ESP_LOGI(TAG, "System time updated successfully.");
 }
 
-void extract_time_data(cJSON *response) {
+void extract_time_data(cJSON *response)
+{
     char *date_time = cJSON_GetObjectItem(response, "datetime")->valuestring;
-    char *date_time_utc = cJSON_GetObjectItem(response, "utc_datetime")->valuestring;
+    char *date_time_utc =
+        cJSON_GetObjectItem(response, "utc_datetime")->valuestring;
 
     strptime(date_time, "%Y-%m-%dT%T%z", system_time.date_time);
     strptime(date_time_utc, "%Y-%m-%dT%T%z", system_time.date_time_utc);
@@ -69,5 +70,4 @@ void extract_time_data(cJSON *response) {
     char buffer[30];
     strftime(buffer, 30, "%Y-%m-%dT%T%z", system_time.date_time);
     printf("%s\n", buffer);
-
 }

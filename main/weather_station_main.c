@@ -29,8 +29,8 @@
 #include "model/onboard_led.h"
 #include "model/system_action.h"
 #include "model/system_message.h"
-#include "util/util.h"
 #include "util/date_time.h"
+#include "util/util.h"
 
 // Weather station tasks
 #include "tasks/dht_task.h"
@@ -127,7 +127,8 @@ static void send_message_to_weather_task(enum ForecastRequest request)
     xQueueSend(weather_forecast_msg_queue, (void *)&message, (TickType_t)0);
 }
 
-static void allocate_system_time() {
+static void allocate_system_time()
+{
     system_time.date_time = malloc(sizeof(struct tm));
     system_time.date_time_utc = malloc(sizeof(struct tm));
 }

@@ -19,7 +19,8 @@ static void screen_off(struct Display *display);
 static void show_temperature(struct Display *display);
 static void show_weather_hourly(struct Display *display);
 static void show_weather_daily(struct Display *display);
-static void update_display_mode(struct Display *display, enum DisplayMode new_setting);
+static void update_display_mode(struct Display *display,
+                                enum DisplayMode new_setting);
 
 void display_task(void *pvParameter)
 {
@@ -84,7 +85,9 @@ static void initialize_display(struct Display *display)
     display->humidity = 0.0;
 }
 
-static void update_display_mode(struct Display *display, enum DisplayMode new_setting) {
+static void update_display_mode(struct Display *display,
+                                enum DisplayMode new_setting)
+{
     if (display->display_mode == new_setting) {
         return;
     }

@@ -90,7 +90,7 @@ static void event_handler(void *arg, esp_event_base_t event_base,
 
 void unsigned_char_buf_write(uint8_t *buffer, uint8_t *source_str);
 
-void wifi_init_sta(unsigned char *wifi_ssid,unsigned char *wifi_pass)
+void wifi_init_sta(unsigned char *wifi_ssid, unsigned char *wifi_pass)
 {
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     s_wifi_event_group = xEventGroupCreate();
@@ -155,7 +155,8 @@ void wifi_init_sta(unsigned char *wifi_ssid,unsigned char *wifi_pass)
     }
 }
 
-void unsigned_char_buf_write(uint8_t *buffer, uint8_t *source_str) {
+void unsigned_char_buf_write(uint8_t *buffer, uint8_t *source_str)
+{
     uint8_t *ptr = source_str;
     uint8_t *buf_ptr = buffer;
     do {
