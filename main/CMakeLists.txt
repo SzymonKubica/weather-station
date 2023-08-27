@@ -6,6 +6,7 @@ set(srcs
     "display/display.c"
     "gpio/gpio_util.c"
     "util/util.c"
+    "util/date_time.c"
     "util/logging.c"
     "model/system_action.c"
     "model/onboard_led.c"

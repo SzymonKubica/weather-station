@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "system_action.h"
 #include "system_message.h"
+#include "../util/date_time.h"
 
 #define SERVER "api.open-meteo.com"
 #define PORT "80"
@@ -52,6 +53,7 @@ void weather_forecast_task(void *pvParameter)
 
             switch (received_message->forecast_request) {
             case WEATHER_NOW:
+                update_time();
                 send_weather_hourly_update(forecasts[0]);
                 break;
             case WEATHER_TODAY:
@@ -86,7 +88,11 @@ void update_weather_data()
     strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
     strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
     cJSON *json;
-    send_http_request(request, &json);
+    int status = send_http_request(request, &json);
+
+    if (status == REQUEST_FAILED) {
+        return;
+    }
 
     ESP_LOGI(TAG, "Extracting forecast data...");
     extract_hourly_forecast(json, FORECAST_DAYS, forecasts);
