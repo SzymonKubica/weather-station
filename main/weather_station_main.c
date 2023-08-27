@@ -45,25 +45,6 @@ TaskHandle_t task_3_handle = NULL;
 
 static void system_task(void *pvParameter);
 
-#define SERVER "api.open-meteo.com"
-#define PORT "80"
-#define PATH                                                                   \
-    "https://api.open-meteo.com/v1/"                                           \
-    "forecast?latitude=51.5085&longitude=-0.1257&hourly=temperature_2m,"       \
-    "relativehumidity_2m,apparent_temperature,precipitation_probability&"      \
-    "daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,"              \
-    "precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=3&"  \
-    "models=best_match"
-
-char *WEB_SERVER = SERVER;
-char *WEB_PORT = PORT;
-char *WEB_PATH = PATH;
-
-char *REQUEST = "GET " PATH " HTTP/1.0\r\n"
-                "Host: " SERVER " \r\n"
-                "User-Agent: esp-idf/1.0 esp32\r\n"
-                "\r\n";
-
 void explore_json(cJSON *json);
 void app_main(void)
 {
@@ -78,23 +59,6 @@ void app_main(void)
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
 
-    struct Request *request = malloc(sizeof(struct Request));
-    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
-    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
-    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
-    request->body = calloc(strlen(REQUEST), sizeof(char));
-    request->max_attempts = 3;
-
-    strncpy(request->web_server, WEB_SERVER, strlen(WEB_SERVER) + 1);
-    strncpy(request->web_port, WEB_PORT, strlen(WEB_PORT) + 1);
-    strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
-    strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
-
-    cJSON *json;
-
-    send_http_request(request, &json);
-
-    explore_json(json);
 
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
@@ -102,65 +66,6 @@ void app_main(void)
     xTaskCreate(&display_task, "display", 4096, NULL, 5, &task_3_handle);
 
     fflush(stdout);
-}
-
-void extract_strings(cJSON *array, char *strings[])
-{
-    int index = 0;
-    cJSON *item;
-
-    cJSON_ArrayForEach(item, array)
-    {
-        strings[index] = cJSON_Print(item);
-        index++;
-    }
-}
-void explore_json(cJSON *json)
-{
-    printf("%s\n", json->child->string);
-    printf("%s\n", json->child->next->string);
-    cJSON *hourly = cJSON_GetObjectItemCaseSensitive(json, "hourly");
-    cJSON *times = cJSON_GetObjectItemCaseSensitive(hourly, "time");
-    cJSON *temperatures =
-        cJSON_GetObjectItemCaseSensitive(hourly, "temperature_2m");
-    cJSON *apparent_temperatures =
-        cJSON_GetObjectItemCaseSensitive(hourly, "apparent_temperature");
-    cJSON *humidities =
-        cJSON_GetObjectItemCaseSensitive(hourly, "relativehumidity_2m");
-    cJSON *precip_probabilities =
-        cJSON_GetObjectItemCaseSensitive(hourly, "precipitation_probability");
-
-    printf("%d\n", cJSON_IsArray(times));
-    printf("%d\n", cJSON_IsArray(temperatures));
-    printf("%d\n", cJSON_IsArray(apparent_temperatures));
-    printf("%d\n", cJSON_IsArray(humidities));
-    printf("%d\n", cJSON_IsArray(precip_probabilities));
-
-    printf("%s\n", cJSON_Print(temperatures));
-    cJSON *temperature = NULL;
-
-    // Forecast for 3 days -> 3 * 24 = 72 data points.
-
-    char *time_strings[72];
-    char *temperature_strings[72];
-    char *apparent_temperature_strings[72];
-    char *humidity_strings[72];
-    char *precip_probability_strings[72];
-
-    extract_strings(times, time_strings);
-    extract_strings(temperatures, temperature_strings);
-    extract_strings(apparent_temperatures, apparent_temperature_strings);
-    extract_strings(humidities, humidity_strings);
-    extract_strings(precip_probabilities, precip_probability_strings);
-
-    struct ForecastHourly forecasts[72];
-    for (int i = 0; i < 72; i++) {
-        parse_hourly_forecast(time_strings[i], temperature_strings[i],
-                              apparent_temperature_strings[i],
-                              humidity_strings[i],
-                              precip_probability_strings[i], &forecasts[i]);
-    }
-    print_hourly_forecast(&forecasts[15]);
 }
 
 static void send_msg_to_screen(enum DisplayAction message);
