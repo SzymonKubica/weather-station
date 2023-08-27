@@ -66,7 +66,7 @@ void ir_remote_task(void *pvParameter)
                         system_message.system_action = GET_WEATHER_T2;
                         break;
                     case BUTTON_PLAY_PAUSE:
-                        system_message.system_action = UPDATE_WEATHER_DATA;
+                        system_message.system_action = REQUEST_UPDATE_WEATHER_DATA;
                         break;
                     default:
                         break;
