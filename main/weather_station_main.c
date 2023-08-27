@@ -30,6 +30,7 @@
 #include "model/system_action.h"
 #include "model/system_message.h"
 #include "util/util.h"
+#include "util/date_time.h"
 
 // Weather station tasks
 #include "tasks/dht_task.h"
@@ -47,11 +48,13 @@ TaskHandle_t task_4_handle = NULL;
 
 static void system_task(void *pvParameter);
 static void send_message_to_weather_task(enum ForecastRequest request);
+static void allocate_system_time();
 
 void app_main(void)
 {
     configure_gpio_outputs();
     initialize_non_volatile_flash();
+    allocate_system_time();
     esp_log_level_set("*", ESP_LOG_INFO);
 
     disable_led_by_default();
@@ -61,13 +64,15 @@ void app_main(void)
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
-    weather_forecast_msg_queue = xQueueCreate(10, sizeof(struct WeatherForecastMessage *));
+    weather_forecast_msg_queue =
+        xQueueCreate(10, sizeof(struct WeatherForecastMessage *));
 
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
     xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);
     xTaskCreate(&display_task, "display", 4096, NULL, 5, &task_3_handle);
-    xTaskCreate(&weather_forecast_task, "weather_forecast", 4096, NULL, 5, &task_4_handle);
+    xTaskCreate(&weather_forecast_task, "weather_forecast", 4096, NULL, 5,
+                &task_4_handle);
 
     fflush(stdout);
 }
@@ -120,4 +125,9 @@ static void send_message_to_weather_task(enum ForecastRequest request)
     struct ForecastMessage *message = &forecast_request_message;
     message->forecast_request = request;
     xQueueSend(weather_forecast_msg_queue, (void *)&message, (TickType_t)0);
+}
+
+static void allocate_system_time() {
+    system_time.date_time = malloc(sizeof(struct tm));
+    system_time.date_time_utc = malloc(sizeof(struct tm));
 }

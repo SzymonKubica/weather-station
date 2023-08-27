@@ -34,6 +34,7 @@ void extract_hourly_forecast(cJSON *response, int forecast_days,
         parse_hourly_forecast(time, temperature, apparent_temperature, humidity,
                               precip_probability, forecasts[i]);
     }
+
 }
 void extract_daily_forecast(cJSON *response, int forecast_days,
                             struct ForecastDaily *forecasts[])
@@ -69,6 +70,7 @@ void extract_daily_forecast(cJSON *response, int forecast_days,
                              max_temperature, max_precip_probability,
                              forecasts[i]);
     }
+
 }
 
 int parse_hourly_forecast(char *time, char *temperature,

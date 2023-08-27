@@ -54,7 +54,8 @@ void weather_forecast_task(void *pvParameter)
             switch (received_message->forecast_request) {
             case WEATHER_NOW:
                 update_time();
-                send_weather_hourly_update(forecasts[0]);
+                print_hourly_forecast(forecasts[system_time.date_time_utc->tm_hour]);
+                send_weather_hourly_update(forecasts[system_time.date_time_utc->tm_hour]);
                 break;
             case WEATHER_TODAY:
                 send_weather_daily_update(SHOW_WEATHER_TODAY, forecasts_daily[0]);
@@ -93,6 +94,12 @@ void update_weather_data()
     if (status == REQUEST_FAILED) {
         return;
     }
+
+    free(request->web_server);
+    free(request->web_port);
+    free(request->web_path);
+    free(request->body);
+    free(request);
 
     ESP_LOGI(TAG, "Extracting forecast data...");
     extract_hourly_forecast(json, FORECAST_DAYS, forecasts);

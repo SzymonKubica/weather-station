@@ -4,7 +4,9 @@
 struct DateTime {
     struct tm *date_time;
     struct tm *date_time_utc;
-} system_time;
+};
+
+extern struct DateTime system_time;
 
 void update_time();
 
