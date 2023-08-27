@@ -25,7 +25,7 @@ void dht_task(void *pvParameter)
         float temperature = get_temperature();
         ESP_LOGI(DHT_TAG, "Hum: %.1f Tmp: %.1f\n", humidity, temperature);
 
-        message->requested_action = SHOW_DHT_READING;
+        message->requested_action = UPDATE_DHT_READING;
         message->temperature = temperature;
         message->humidity = humidity;
         xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);

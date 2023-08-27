@@ -92,6 +92,9 @@ static void system_task(void *pvParameter)
             case DISPLAY_ON:
                 send_msg_to_screen(SCREEN_ON);
                 break;
+            case SHOW_SENSOR_READING:
+                send_msg_to_screen(SHOW_DHT_READING);
+                break;
             case GET_WEATHER_NOW:
                 send_message_to_weather_task(WEATHER_NOW);
                 break;

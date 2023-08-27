@@ -5,6 +5,7 @@ enum SystemAction {
     TOGGLE_ONBOARD_LED,
     DISPLAY_OFF,
     DISPLAY_ON,
+    SHOW_SENSOR_READING,
     GET_WEATHER_NOW,
     GET_WEATHER_TODAY,
     GET_WEATHER_TOMORROW,
@@ -15,6 +16,7 @@ enum SystemAction {
 enum DisplayAction {
     SCREEN_ON,
     SCREEN_OFF,
+    UPDATE_DHT_READING,
     SHOW_DHT_READING,
     SHOW_WEATHER_NOW,
     SHOW_WEATHER_TODAY,
