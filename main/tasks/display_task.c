@@ -95,6 +95,7 @@ static void update_display_mode(struct Display *display, enum DisplayMode new_se
 static void screen_on(struct Display *display)
 {
     display->is_on = true;
+    display->display_mode = TEMPERATURE_AND_HUMIDITY;
     show_temperature(display);
 }
 

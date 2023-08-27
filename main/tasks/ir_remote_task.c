@@ -51,15 +51,18 @@ void ir_remote_task(void *pvParameter)
                         system_message.system_action = DISPLAY_ON;
                         break;
                     case BUTTON_0:
-                        system_message.system_action = GET_WEATHER_NOW;
+                        system_message.system_action = SHOW_SENSOR_READING;
                         break;
                     case BUTTON_1:
-                        system_message.system_action = GET_WEATHER_TODAY;
+                        system_message.system_action = GET_WEATHER_NOW;
                         break;
                     case BUTTON_2:
-                        system_message.system_action = GET_WEATHER_TOMORROW;
+                        system_message.system_action = GET_WEATHER_TODAY;
                         break;
                     case BUTTON_3:
+                        system_message.system_action = GET_WEATHER_TOMORROW;
+                        break;
+                    case BUTTON_4:
                         system_message.system_action = GET_WEATHER_T2;
                         break;
                     case BUTTON_PLAY_PAUSE:

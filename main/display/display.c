@@ -3,11 +3,35 @@
 
 void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 {
-    ssd1306_display_text(dev, 1, "Weather Hourly", 16, false);
+    ssd1306_display_text(dev, 0, "Weather Hourly", 16, false);
+    char temperature_buffer[22];
+    snprintf(temperature_buffer, 22, "           %.1fC", forecast->temperature);
+    char humidity_buffer[22];
+    snprintf(humidity_buffer, 22, "           %.1f%%", forecast->humidity);
+    char precipitation_buffer[22];
+    snprintf(precipitation_buffer, 22, "             %02d%%", forecast->precip_probability);
+    ssd1306_display_text(dev, 1, "Temperature:", 13, false);
+    ssd1306_display_text(dev, 2, temperature_buffer, 22, false);
+    ssd1306_display_text(dev, 3, "Humidity:", 9, false);
+    ssd1306_display_text(dev, 4, humidity_buffer, 22, false);
+    ssd1306_display_text(dev, 5, "Precipitation:", 15, false);
+    ssd1306_display_text(dev, 6, precipitation_buffer, 22, false);
 }
 void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
 {
-    ssd1306_display_text(dev, 1, "Weather Daily", 16, false);
+    ssd1306_display_text(dev, 0, "Weather daily", 16, false);
+    char max_temperature_buffer[22];
+    snprintf(max_temperature_buffer, 22, "           %.1fC", forecast->max_temperature);
+    char min_temperature_buffer[22];
+    snprintf(min_temperature_buffer, 22, "           %.1fC", forecast->min_temperature);
+    char precipitation_buffer[22];
+    snprintf(precipitation_buffer, 22, "             %02d%%", forecast->max_precip_probability);
+    ssd1306_display_text(dev, 1, "Max Temperature:", 17, false);
+    ssd1306_display_text(dev, 2, max_temperature_buffer, 22, false);
+    ssd1306_display_text(dev, 3, "Min Temperature:", 17, false);
+    ssd1306_display_text(dev, 4, min_temperature_buffer, 22, false);
+    ssd1306_display_text(dev, 5, "Precipitation:", 15, false);
+    ssd1306_display_text(dev, 6, precipitation_buffer, 22, false);
 }
 
 void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
