@@ -6,7 +6,7 @@ void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
 {
 
     char temperature_buffer[22];
-    snprintf(temperature_buffer, 22, "          %.1fC", temperature);
+    snprintf(temperature_buffer, 22, "           %.1fC", temperature);
     char humidity_buffer[22];
     snprintf(humidity_buffer, 22, "           %.1f%%", humidity);
 
