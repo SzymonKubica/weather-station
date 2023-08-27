@@ -74,8 +74,17 @@ void weather_forecast_task(void *pvParameter)
 void update_weather_data()
 {
     ESP_LOGI(TAG, "Sending HTTP request to get weather data...");
-    struct Request *request;
-    assemble_request(request);
+    struct Request *request = malloc(sizeof(struct Request));
+    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
+    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
+    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
+    request->body = calloc(strlen(REQUEST), sizeof(char));
+    request->max_attempts = 3;
+
+    strncpy(request->web_server, WEB_SERVER, strlen(WEB_SERVER) + 1);
+    strncpy(request->web_port, WEB_PORT, strlen(WEB_PORT) + 1);
+    strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
+    strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
     cJSON *json;
     send_http_request(request, &json);
 
@@ -104,15 +113,4 @@ void send_weather_hourly_update(struct ForecastHourly *forecast)
 
 void assemble_request(struct Request *request)
 {
-    request = malloc(sizeof(struct Request));
-    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
-    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
-    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
-    request->body = calloc(strlen(REQUEST), sizeof(char));
-    request->max_attempts = 3;
-
-    strncpy(request->web_server, WEB_SERVER, strlen(WEB_SERVER) + 1);
-    strncpy(request->web_port, WEB_PORT, strlen(WEB_PORT) + 1);
-    strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
-    strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
 }

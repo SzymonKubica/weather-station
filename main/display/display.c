@@ -37,7 +37,7 @@ void initialise_screen_device(SSD1306_t *dev)
     ssd1306_clear_screen(dev, false);
 }
 
-static void send_msg_to_screen(enum DisplayAction action)
+void send_msg_to_screen(enum DisplayAction action)
 {
     struct DisplayMessage *message = &display_message;
     message->requested_action = action;

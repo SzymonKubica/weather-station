@@ -17,7 +17,7 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast);
 void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast);
 void initialise_screen_device(SSD1306_t *dev);
 
-static void send_msg_to_screen(enum DisplayAction message);
+void send_msg_to_screen(enum DisplayAction message);
 
 enum DisplayMode {
     TEMPERATURE_AND_HUMIDITY,
