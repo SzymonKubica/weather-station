@@ -10,6 +10,7 @@ set(srcs
     "model/system_action.c"
     "model/onboard_led.c"
     "model/system_message.c"
+    "model/forecast.c"
     "tasks/dht_task.c"
     "tasks/display_task.c"
     "tasks/ir_remote_task.c"
