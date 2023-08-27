@@ -17,6 +17,8 @@ static void initialize_display(struct Display *display);
 static void screen_on(struct Display *display);
 static void screen_off(struct Display *display);
 static void show_temperature(struct Display *display);
+static void show_weather_hourly(struct Display *display);
+static void show_weather_daily(struct Display *display);
 
 void display_task(void *pvParameter)
 {
@@ -40,6 +42,22 @@ void display_task(void *pvParameter)
                 display.temperature = received_message->temperature;
                 display.humidity = received_message->humidity;
                 show_temperature(&display);
+                break;
+            case SHOW_WEATHER_NOW:
+                display.hourly_forecast = received_message->hourly_forecast;
+                show_weather_hourly(&display);
+                break;
+            case SHOW_WEATHER_TODAY:
+                display.daily_forecast = received_message->daily_forecast;
+                show_weather_daily(&display);
+                break;
+            case SHOW_WEATHER_TOMORROW:
+                display.daily_forecast = received_message->daily_forecast;
+                show_weather_daily(&display);
+                break;
+            case SHOW_WEATHER_T2:
+                display.daily_forecast = received_message->daily_forecast;
+                show_weather_daily(&display);
                 break;
             }
         }
@@ -73,5 +91,19 @@ static void show_temperature(struct Display *display)
     if (display->is_on) {
         print_temperature_and_humidity(display->device, display->temperature,
                                        display->humidity);
+    }
+}
+
+static void show_weather_hourly(struct Display *display)
+{
+    if (display->is_on) {
+        print_weather_hourly(display->device, display->hourly_forecast);
+    }
+}
+
+static void show_weather_daily(struct Display *display)
+{
+    if (display->is_on) {
+        print_weather_daily(display->device, display->daily_forecast);
     }
 }

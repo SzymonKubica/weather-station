@@ -1,10 +1,13 @@
 #include "weather_forecast_task.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../libs/http-client/http_client.h"
 #include "../model/forecast.h"
 #include "esp_log.h"
+#include "system_action.h"
+#include "system_message.h"
 
 #define SERVER "api.open-meteo.com"
 #define PORT "80"
@@ -33,13 +36,39 @@ struct ForecastDaily *forecasts_daily[FORECAST_DAYS];
 
 void assemble_request(struct Request *request);
 void update_weather_data();
+void send_weather_daily_update(enum DisplayAction action,
+                               struct ForecastDaily *forecast);
+void send_weather_hourly_update(struct ForecastHourly *forecast);
+
 void weather_forecast_task(void *pvParameter)
 {
     ESP_LOGI(TAG, "Getting weather data...");
     update_weather_data();
 
-    print_hourly_forecast(forecasts[15]);
-    print_daily_forecast(forecasts_daily[2]);
+    struct ForecastMessage *received_message;
+    while (true) {
+        if (xQueueReceive(weather_forecast_msg_queue, &(received_message),
+                          (TickType_t)5)) {
+
+            switch (received_message->forecast_request) {
+            case WEATHER_NOW:
+                send_weather_hourly_update(forecasts[0]);
+                break;
+            case WEATHER_TODAY:
+                send_weather_daily_update(SHOW_WEATHER_TODAY, forecasts_daily[0]);
+                break;
+            case WEATHER_TOMORROW:
+                send_weather_daily_update(SHOW_WEATHER_TOMORROW, forecasts_daily[1]);
+                break;
+            case WEATHER_T2:
+                send_weather_daily_update(SHOW_WEATHER_T2, forecasts_daily[2]);
+                break;
+            case UPDATE_WEATHER_DATA:
+                update_weather_data();
+                break;
+            }
+        }
+    }
 }
 
 void update_weather_data()
@@ -55,6 +84,22 @@ void update_weather_data()
     extract_daily_forecast(json, FORECAST_DAYS, forecasts_daily);
 
     ESP_LOGI(TAG, "Weather data extracted successfully");
+}
+
+void send_weather_daily_update(enum DisplayAction action,
+                               struct ForecastDaily *forecast)
+{
+    struct DisplayMessage *message = &display_message;
+    message->requested_action = action;
+    message->daily_forecast = forecast;
+    xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
+}
+void send_weather_hourly_update(struct ForecastHourly *forecast)
+{
+    struct DisplayMessage *message = &display_message;
+    message->requested_action = SHOW_WEATHER_NOW;
+    message->hourly_forecast = forecast;
+    xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 }
 
 void assemble_request(struct Request *request)

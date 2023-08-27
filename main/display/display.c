@@ -1,6 +1,13 @@
 #include "display.h"
 #include "ssd1306.h"
 
+void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast) {
+    ssd1306_display_text(dev, 1, "Weather Hourly", 16, false);
+}
+void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast) {
+    ssd1306_display_text(dev, 1, "Weather Daily", 16, false);
+}
+
 void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
                                     float humidity)
 {
@@ -30,5 +37,13 @@ void initialise_screen_device(SSD1306_t *dev)
     ssd1306_clear_screen(dev, false);
 }
 
+static void send_msg_to_screen(enum DisplayAction action)
+{
+    struct DisplayMessage *message = &display_message;
+    message->requested_action = action;
+    xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
+}
+
 const char *display_mode_str[] = {[TEMPERATURE_AND_HUMIDITY] =
+
                                       "TEMPERATURE_AND_HUMIDITY"};

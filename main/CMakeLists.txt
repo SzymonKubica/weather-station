@@ -14,6 +14,7 @@ set(srcs
     "tasks/dht_task.c"
     "tasks/display_task.c"
     "tasks/ir_remote_task.c"
+    "tasks/weather_forecast_task.c"
     )
 set(includes "libs"
   "gpio" "display" "util" "model" "tasks")

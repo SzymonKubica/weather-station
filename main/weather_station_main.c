@@ -35,6 +35,7 @@
 #include "tasks/dht_task.h"
 #include "tasks/display_task.h"
 #include "tasks/ir_remote_task.h"
+#include "weather_forecast_task.h"
 
 #define SYSTEM_TAG "SYSTEM"
 
@@ -42,10 +43,11 @@ TaskHandle_t task_0_handle = NULL;
 TaskHandle_t task_1_handle = NULL;
 TaskHandle_t task_2_handle = NULL;
 TaskHandle_t task_3_handle = NULL;
+TaskHandle_t task_4_handle = NULL;
 
 static void system_task(void *pvParameter);
+static void send_message_to_weather_task(enum ForecastRequest request);
 
-void explore_json(cJSON *json);
 void app_main(void)
 {
     configure_gpio_outputs();
@@ -58,17 +60,17 @@ void app_main(void)
     ir_remote_input_queue = xQueueCreate(10, sizeof(struct IRRemoteMessage *));
     system_msg_queue = xQueueCreate(10, sizeof(struct SystemMessage *));
     display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
-
+    display_msg_queue = xQueueCreate(10, sizeof(struct DisplayMessage *));
+    weather_forecast_msg_queue = xQueueCreate(10, sizeof(struct WeatherForecastMessage *));
 
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
     xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);
     xTaskCreate(&display_task, "display", 4096, NULL, 5, &task_3_handle);
+    xTaskCreate(&weather_forecast_task, "weather_forecast", 4096, NULL, 5, &task_4_handle);
 
     fflush(stdout);
 }
-
-static void send_msg_to_screen(enum DisplayAction message);
 
 static void system_task(void *pvParameter)
 {
@@ -89,14 +91,30 @@ static void system_task(void *pvParameter)
                 break;
             case DISPLAY_ON:
                 send_msg_to_screen(SCREEN_ON);
+                break;
+            case GET_WEATHER_NOW:
+                send_message_to_weather_task(WEATHER_NOW);
+                break;
+            case GET_WEATHER_TODAY:
+                send_message_to_weather_task(WEATHER_TODAY);
+                break;
+            case GET_WEATHER_TOMORROW:
+                send_message_to_weather_task(WEATHER_TOMORROW);
+                break;
+            case GET_WEATHER_T2:
+                send_message_to_weather_task(WEATHER_T2);
+                break;
+            case REQUEST_UPDATE_WEATHER_DATA:
+                send_message_to_weather_task(UPDATE_WEATHER_DATA);
+                break;
             }
         }
     }
 }
 
-static void send_msg_to_screen(enum DisplayAction action)
+static void send_message_to_weather_task(enum ForecastRequest request)
 {
-    struct DisplayMessage *message = &display_message;
-    message->requested_action = action;
-    xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
+    struct ForecastMessage *message = &forecast_request_message;
+    message->forecast_request = request;
+    xQueueSend(weather_forecast_msg_queue, (void *)&message, (TickType_t)0);
 }

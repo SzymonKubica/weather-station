@@ -1,6 +1,8 @@
 #include "driver/rmt_types_legacy.h"
 #include "esp_log.h"
 #include "freertos/ringbuf.h"
+#include "infrared_nec.h"
+#include "system_action.h"
 #include "system_message.h"
 
 #define NEC_TAG "NEC"
@@ -47,6 +49,21 @@ void ir_remote_task(void *pvParameter)
                         break;
                     case BUTTON_CHANNEL_PLUS:
                         system_message.system_action = DISPLAY_ON;
+                        break;
+                    case BUTTON_0:
+                        system_message.system_action = GET_WEATHER_NOW;
+                        break;
+                    case BUTTON_1:
+                        system_message.system_action = GET_WEATHER_TODAY;
+                        break;
+                    case BUTTON_2:
+                        system_message.system_action = GET_WEATHER_TOMORROW;
+                        break;
+                    case BUTTON_3:
+                        system_message.system_action = GET_WEATHER_T2;
+                        break;
+                    case BUTTON_PLAY_PAUSE:
+                        system_message.system_action = UPDATE_WEATHER_DATA;
                         break;
                     default:
                         break;
