@@ -45,12 +45,10 @@ void extract_json_from_response(char *response, char *json_string,
                                 int response_length);
 
 int connect_socket(int *socket, struct addrinfo *res);
-int read_response(int *socket);
+int read_response(int *socket, cJSON **extracted_response);
 
-void http_request_task(void *pvParameters)
+int send_http_request(struct Request *request, cJSON **response)
 {
-    const struct Request *request = (struct Request *)pvParameters;
-
     const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
@@ -58,8 +56,8 @@ void http_request_task(void *pvParameters)
     struct addrinfo *res;
     struct in_addr *addr;
     int s;
-
     int attempts = 0;
+
     while (attempts < request->max_attempts) {
         int err =
             getaddrinfo(request->web_server, request->web_port, &hints, &res);
@@ -111,14 +109,16 @@ void http_request_task(void *pvParameters)
         }
         ESP_LOGI(TAG, "... Socket receiving timeout set successfully.");
 
-        int read_status = read_response(&s);
+        int read_status = read_response(&s, response);
         if (read_status != SOCKET_READ_SUCCESS) {
             ESP_LOGE(TAG, "... Unable to read from the socket.");
             wait_seconds(4);
             attempts++;
             continue;
         }
+        return REQUEST_SUCCESS;
     }
+    return REQUEST_FAILED;
 }
 
 int connect_socket(int *socket, struct addrinfo *res)
@@ -141,7 +141,7 @@ int connect_socket(int *socket, struct addrinfo *res)
     return SOCKET_CONNECTION_SUCCESS;
 }
 
-int read_response(int *socket)
+int read_response(int *socket, cJSON **extracted_response)
 {
     char *response = calloc(10000, sizeof(char));
     char *response_ptr = response;
@@ -157,6 +157,7 @@ int read_response(int *socket)
         }
     } while (r > 0);
 
+    ESP_LOGI(TAG, "Response received: \n");
     int response_length = response_ptr - response;
     for (int i = 0; i < response_length; i++) {
         putchar(*(response + i));
@@ -168,11 +169,12 @@ int read_response(int *socket)
     free(response);
 
     cJSON *json = cJSON_Parse(json_string);
-    printf("%s", json->child->string);
+
     ESP_LOGI(TAG, "... done reading from socket. Last read return=%d errno=%d.",
              r, errno);
     close(*socket);
     free(json_string);
+    *extracted_response = json;
     return SOCKET_READ_SUCCESS;
 }
 

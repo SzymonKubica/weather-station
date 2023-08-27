@@ -86,8 +86,12 @@ void app_main(void)
     strncpy(request->web_path, WEB_PATH, strlen(WEB_PATH) + 1);
     strncpy(request->body, REQUEST, strlen(REQUEST) + 1);
 
-    xTaskCreate(&http_request_task, "http_get_task", 4096, (void *)request, 5,
-                NULL);
+    cJSON *json;
+
+    send_http_request(request, &json);
+
+    printf("%s\n", json->child->string);
+
     xTaskCreate(&system_task, "system", 2048, NULL, 10, &task_0_handle);
     xTaskCreate(&dht_task, "dht-22", 2048, NULL, 5, &task_1_handle);
     xTaskCreate(&ir_remote_task, "nec_rx", 4096, NULL, 10, &task_2_handle);
