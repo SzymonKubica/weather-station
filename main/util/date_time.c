@@ -27,7 +27,7 @@ void extract_time_data(cJSON *response);
 void update_time()
 {
     ESP_LOGI(TAG, "Sending HTTP request to get the current time...");
-    struct Request *request = malloc(sizeof(struct Request));
+    struct Request *request = calloc(1, sizeof(struct Request));
     request->web_server = calloc(strlen(TIME_SERVER), sizeof(char));
     request->web_port = calloc(strlen(TIME_SERVER_PORT), sizeof(char));
     request->web_path = calloc(strlen(TIME_SERVER_PATH), sizeof(char));
