@@ -28,10 +28,10 @@ void update_time()
 {
     ESP_LOGI(TAG, "Sending HTTP request to get the current time...");
     struct Request *request = calloc(1, sizeof(struct Request));
-    request->web_server = calloc(strlen(TIME_SERVER), sizeof(char));
-    request->web_port = calloc(strlen(TIME_SERVER_PORT), sizeof(char));
-    request->web_path = calloc(strlen(TIME_SERVER_PATH), sizeof(char));
-    request->body = calloc(strlen(TIME_REQUEST), sizeof(char));
+    request->web_server = calloc(strlen(TIME_SERVER) + 1, sizeof(char));
+    request->web_port = calloc(strlen(TIME_SERVER_PORT) + 1, sizeof(char));
+    request->web_path = calloc(strlen(TIME_SERVER_PATH) + 1, sizeof(char));
+    request->body = calloc(strlen(TIME_REQUEST) + 1, sizeof(char));
     request->max_attempts = 3;
 
     strncpy(request->web_server, TIME_SERVER, strlen(TIME_SERVER) + 1);
