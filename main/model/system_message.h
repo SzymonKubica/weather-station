@@ -19,10 +19,15 @@ struct DisplayMessage {
 
 struct SystemMessage {
     enum SystemAction system_action;
+    void *message_payload;
 };
 
-struct ForecastMessage {
-    enum ForecastRequest forecast_request;
+struct ForecastRequest {
+    enum ForecastRequestType request_type;
+    // When the message requests a hourly/daily forecast
+    // the offset controlls which day/hour starting from
+    // now is to be displayed
+    int requested_offset;
 };
 
 extern QueueHandle_t ir_remote_input_queue;
@@ -34,6 +39,6 @@ extern QueueHandle_t weather_forecast_msg_queue;
 extern struct IRRemoteMessage ir_remote_message;
 extern struct DisplayMessage display_message;
 extern struct SystemMessage system_message;
-extern struct ForecastMessage forecast_request_message;
+extern struct ForecastRequest forecast_request_message;
 
 #endif
