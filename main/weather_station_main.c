@@ -47,7 +47,7 @@ TaskHandle_t task_3_handle = NULL;
 TaskHandle_t task_4_handle = NULL;
 
 static void system_task(void *pvParameter);
-static void send_message_to_weather_task(enum ForecastRequest request);
+static void send_message_to_weather_task(enum ForecastRequestType request);
 static void allocate_system_time();
 
 void app_main(void)
@@ -77,54 +77,35 @@ void app_main(void)
     fflush(stdout);
 }
 
+static void send_forecast_request(struct ForecastRequest *request);
 static void system_task(void *pvParameter)
 {
-    struct SystemMessage *received_message;
+    struct SystemMessage *received_msg;
 
     while (true) {
-        if (xQueueReceive(system_msg_queue, &(received_message),
+        if (xQueueReceive(system_msg_queue, &(received_msg),
                           (TickType_t)5)) {
-            enum SystemAction action = received_message->system_action;
+            enum SystemAction action = received_msg->system_action;
             ESP_LOGI(SYSTEM_TAG, "Received an incoming system message: %s",
                      system_action_str[action]);
             switch (action) {
             case TOGGLE_ONBOARD_LED:
                 toggle_onboard_led();
                 break;
-            case DISPLAY_OFF:
-                send_msg_to_screen(SCREEN_OFF);
-                break;
-            case DISPLAY_ON:
-                send_msg_to_screen(SCREEN_ON);
-                break;
-            case SHOW_SENSOR_READING:
-                send_msg_to_screen(SHOW_DHT_READING);
-                break;
-            case GET_WEATHER_NOW:
-                send_message_to_weather_task(WEATHER_NOW);
-                break;
-            case GET_WEATHER_TODAY:
-                send_message_to_weather_task(WEATHER_TODAY);
-                break;
-            case GET_WEATHER_TOMORROW:
-                send_message_to_weather_task(WEATHER_TOMORROW);
-                break;
-            case GET_WEATHER_T2:
-                send_message_to_weather_task(WEATHER_T2);
-                break;
-            case REQUEST_UPDATE_WEATHER_DATA:
-                send_message_to_weather_task(UPDATE_WEATHER_DATA);
+            case DISPLAY_REQUEST:
+                send_msg_to_screen(
+                    *((enum DisplayAction *)received_msg->message_payload));
+            case FORECAST_REQUEST:
+                send_forecast_request((struct ForecastRequest *)received_msg->message_payload);
                 break;
             }
         }
     }
 }
 
-static void send_message_to_weather_task(enum ForecastRequest request)
+static void send_forecast_request(struct ForecastRequest *request)
 {
-    struct ForecastMessage *message = &forecast_request_message;
-    message->forecast_request = request;
-    xQueueSend(weather_forecast_msg_queue, (void *)&message, (TickType_t)0);
+    xQueueSend(weather_forecast_msg_queue, (void *)&request, (TickType_t)0);
 }
 
 static void allocate_system_time()

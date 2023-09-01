@@ -46,13 +46,13 @@ void weather_forecast_task(void *pvParameter)
     ESP_LOGI(TAG, "Getting weather data...");
     update_weather_data();
 
-    struct ForecastMessage *received_message;
+    struct ForecastRequest *received_message;
     while (true) {
         if (xQueueReceive(weather_forecast_msg_queue, &(received_message),
                           (TickType_t)5)) {
 
             switch (received_message->forecast_request) {
-            case WEATHER_NOW:
+            case WEATHER_HOURLY:
                 update_time();
                 print_hourly_forecast(
                     forecasts[system_time.date_time_utc->tm_hour]);
