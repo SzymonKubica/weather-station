@@ -56,18 +56,15 @@ void weather_forecast_task(void *pvParameter)
                 update_time();
                 int number_of_datapoints = 24 * FORECAST_DAYS;
                 int hour = system_time.date_time_utc->tm_hour;
-                offset = (hour + received_message->requested_offset) % number_of_datapoints;
-                print_hourly_forecast(
-                    forecasts[offset]);
-                send_weather_hourly_update(
-                    forecasts[offset]);
+                offset = (hour + received_message->requested_offset) %
+                         number_of_datapoints;
+                print_hourly_forecast(forecasts[offset]);
+                send_weather_hourly_update(forecasts[offset]);
                 break;
             case WEATHER_DAILY:
                 offset = (received_message->requested_offset) % FORECAST_DAYS;
-                print_hourly_forecast(
-                    forecasts[offset]);
-                send_weather_hourly_update(
-                    forecasts[offset]);
+                print_hourly_forecast(forecasts[offset]);
+                send_weather_hourly_update(forecasts[offset]);
                 break;
             case UPDATE_WEATHER_DATA:
                 update_weather_data();
@@ -77,8 +74,13 @@ void weather_forecast_task(void *pvParameter)
     }
 }
 
+void free_old_data_if_present(
+    struct ForecastHourly *forecasts[24 * FORECAST_DAYS],
+    struct ForecastDaily *forecasts_daily[FORECAST_DAYS]);
+
 void update_weather_data()
 {
+    free_old_data_if_present(forecasts, forecasts_daily);
     ESP_LOGI(TAG, "Sending HTTP request to get weather data...");
     struct Request *request = malloc(sizeof(struct Request));
     request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
@@ -111,6 +113,23 @@ void update_weather_data()
     ESP_LOGI(TAG, "Weather data extracted successfully");
 }
 
+void free_old_data_if_present(
+    struct ForecastHourly *forecasts[24 * FORECAST_DAYS],
+    struct ForecastDaily *forecasts_daily[FORECAST_DAYS])
+{
+    for (int i = 0; i < 24 * FORECAST_DAYS; i++) {
+        if(forecasts[i] != NULL) {
+            free(forecasts[i]);
+        }
+    }
+
+    for (int i = 0; i < FORECAST_DAYS; i++) {
+        if(forecasts_daily[i] != NULL) {
+            free(forecasts_daily[i]);
+        }
+    }
+}
+
 void send_weather_daily_update(struct ForecastDaily *forecast)
 {
     struct DisplayMessage *message = &display_message;
@@ -125,4 +144,3 @@ void send_weather_hourly_update(struct ForecastHourly *forecast)
     message->hourly_forecast = forecast;
     xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 }
-
