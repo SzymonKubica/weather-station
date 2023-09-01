@@ -116,7 +116,6 @@ void ir_remote_task(void *pvParameter)
                     case BUTTON_PLAY_PAUSE:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = UPDATE_WEATHER_DATA;
-                        system_message.message_payload = forecast_request;
                         break;
                     default:
                         break;

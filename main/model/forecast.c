@@ -17,7 +17,7 @@ void extract_hourly_forecast(cJSON *response, int forecast_days,
     cJSON *precip_probabilities =
         cJSON_GetObjectItemCaseSensitive(hourly, "precipitation_probability");
 
-    for (int i = 0; i < 72; i++) {
+    for (int i = 0; i < 24 * forecast_days; i++) {
         forecasts[i] =
             (struct ForecastHourly *)malloc(sizeof(struct ForecastHourly));
 

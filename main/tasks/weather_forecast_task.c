@@ -17,7 +17,7 @@
     "forecast?latitude=51.5085&longitude=-0.1257&hourly=temperature_2m,"       \
     "relativehumidity_2m,apparent_temperature,precipitation_probability&"      \
     "daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,"              \
-    "precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=3&"  \
+    "precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=7&"  \
     "models=best_match"
 
 char *WEB_SERVER = SERVER;
@@ -29,7 +29,7 @@ char *REQUEST = "GET " PATH " HTTP/1.0\r\n"
                 "User-Agent: esp-idf/1.0 esp32\r\n"
                 "\r\n";
 
-#define FORECAST_DAYS 3
+#define FORECAST_DAYS 7
 struct ForecastHourly *forecasts[24 * FORECAST_DAYS];
 struct ForecastDaily *forecasts_daily[FORECAST_DAYS];
 
@@ -37,8 +37,7 @@ struct ForecastDaily *forecasts_daily[FORECAST_DAYS];
 
 void assemble_request(struct Request *request);
 void update_weather_data();
-void send_weather_daily_update(enum DisplayAction action,
-                               struct ForecastDaily *forecast);
+void send_weather_daily_update(struct ForecastDaily *forecast);
 void send_weather_hourly_update(struct ForecastHourly *forecast);
 
 void weather_forecast_task(void *pvParameter)
@@ -51,24 +50,24 @@ void weather_forecast_task(void *pvParameter)
         if (xQueueReceive(weather_forecast_msg_queue, &(received_message),
                           (TickType_t)5)) {
 
-            switch (received_message->forecast_request) {
+            int offset;
+            switch (received_message->request_type) {
             case WEATHER_HOURLY:
                 update_time();
+                int number_of_datapoints = 24 * FORECAST_DAYS;
+                int hour = system_time.date_time_utc->tm_hour;
+                offset = (hour + received_message->requested_offset) % number_of_datapoints;
                 print_hourly_forecast(
-                    forecasts[system_time.date_time_utc->tm_hour]);
+                    forecasts[offset]);
                 send_weather_hourly_update(
-                    forecasts[system_time.date_time_utc->tm_hour]);
+                    forecasts[offset]);
                 break;
-            case WEATHER_TODAY:
-                send_weather_daily_update(SHOW_WEATHER_TODAY,
-                                          forecasts_daily[0]);
-                break;
-            case WEATHER_TOMORROW:
-                send_weather_daily_update(SHOW_WEATHER_TOMORROW,
-                                          forecasts_daily[1]);
-                break;
-            case WEATHER_T2:
-                send_weather_daily_update(SHOW_WEATHER_T2, forecasts_daily[2]);
+            case WEATHER_DAILY:
+                offset = (received_message->requested_offset) % FORECAST_DAYS;
+                print_hourly_forecast(
+                    forecasts[offset]);
+                send_weather_hourly_update(
+                    forecasts[offset]);
                 break;
             case UPDATE_WEATHER_DATA:
                 update_weather_data();
@@ -112,20 +111,18 @@ void update_weather_data()
     ESP_LOGI(TAG, "Weather data extracted successfully");
 }
 
-void send_weather_daily_update(enum DisplayAction action,
-                               struct ForecastDaily *forecast)
+void send_weather_daily_update(struct ForecastDaily *forecast)
 {
     struct DisplayMessage *message = &display_message;
-    message->requested_action = action;
+    message->requested_action = SHOW_WEATHER_DAILY;
     message->daily_forecast = forecast;
     xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 }
 void send_weather_hourly_update(struct ForecastHourly *forecast)
 {
     struct DisplayMessage *message = &display_message;
-    message->requested_action = SHOW_WEATHER_NOW;
+    message->requested_action = SHOW_WEATHER_HOURLY;
     message->hourly_forecast = forecast;
     xQueueSend(display_msg_queue, (void *)&message, (TickType_t)0);
 }
 
-void assemble_request(struct Request *request) {}
