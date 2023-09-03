@@ -118,13 +118,13 @@ void free_old_data_if_present(
     struct ForecastDaily *forecasts_daily[FORECAST_DAYS])
 {
     for (int i = 0; i < 24 * FORECAST_DAYS; i++) {
-        if(forecasts[i] != NULL) {
+        if (forecasts[i] != NULL) {
             free(forecasts[i]);
         }
     }
 
     for (int i = 0; i < FORECAST_DAYS; i++) {
-        if(forecasts_daily[i] != NULL) {
+        if (forecasts_daily[i] != NULL) {
             free(forecasts_daily[i]);
         }
     }

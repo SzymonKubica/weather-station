@@ -83,8 +83,7 @@ static void system_task(void *pvParameter)
     struct SystemMessage *received_msg;
 
     while (true) {
-        if (xQueueReceive(system_msg_queue, &(received_msg),
-                          (TickType_t)5)) {
+        if (xQueueReceive(system_msg_queue, &(received_msg), (TickType_t)5)) {
             enum SystemAction action = received_msg->system_action;
             ESP_LOGI(SYSTEM_TAG, "Received an incoming system message: %s",
                      system_action_str[action]);
@@ -96,7 +95,8 @@ static void system_task(void *pvParameter)
                 send_msg_to_screen(
                     *((enum DisplayAction *)received_msg->message_payload));
             case FORECAST_REQUEST:
-                send_forecast_request((struct ForecastRequest *)received_msg->message_payload);
+                send_forecast_request(
+                    (struct ForecastRequest *)received_msg->message_payload);
                 break;
             }
         }
