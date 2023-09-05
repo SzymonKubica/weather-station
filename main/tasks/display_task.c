@@ -108,16 +108,14 @@ static void show_temperature(struct Display *display)
 
 static void show_weather_hourly(struct Display *display)
 {
-    if (display->is_on && display->display_mode == SHOWING_WEATHER_NOW) {
+    if (display->is_on && display->display_mode == SHOWING_WEATHER_HOURLY) {
         print_weather_hourly(display->device, display->hourly_forecast);
     }
 }
 
 static void show_weather_daily(struct Display *display)
 {
-    if (display->is_on && (display->display_mode == SHOWING_WEATHER_TODAY ||
-                           display->display_mode == SHOWING_WEATHER_TOMORROW ||
-                           display->display_mode == SHOWING_WEATHER_T2)) {
+    if (display->is_on && display->display_mode == SHOWING_WEATHER_DAILY) {
         print_weather_daily(display->device, display->daily_forecast);
     }
 }
