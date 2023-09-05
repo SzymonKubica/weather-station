@@ -63,8 +63,8 @@ void weather_forecast_task(void *pvParameter)
                 break;
             case WEATHER_DAILY:
                 offset = (received_message->requested_offset) % FORECAST_DAYS;
-                print_hourly_forecast(forecasts[offset]);
-                send_weather_hourly_update(forecasts[offset]);
+                print_daily_forecast(forecasts_daily[offset]);
+                send_weather_daily_update(forecasts_daily[offset]);
                 break;
             case UPDATE_WEATHER_DATA:
                 update_weather_data();
