@@ -218,8 +218,7 @@ void ssd1306_scroll_text(SSD1306_t *dev, char *text, int text_len, bool invert)
     if (dev->_scEnable == false)
         return;
 
-    void (*func)(SSD1306_t * dev, int page, int seg, uint8_t *images,
-                 int width);
+    void (*func)(SSD1306_t *dev, int page, int seg, uint8_t *images, int width);
     if (dev->_address == SPIAddress) {
         func = spi_display_image;
     } else {
@@ -618,8 +617,7 @@ uint8_t ssd1306_rotate_byte(uint8_t ch1)
 
 void ssd1306_fadeout(SSD1306_t *dev)
 {
-    void (*func)(SSD1306_t * dev, int page, int seg, uint8_t *images,
-                 int width);
+    void (*func)(SSD1306_t *dev, int page, int seg, uint8_t *images, int width);
     if (dev->_address == SPIAddress) {
         func = spi_display_image;
     } else {
