@@ -94,7 +94,7 @@ void ir_remote_task(void *pvParameter)
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
                         if (daily_offset > 0) {
-                          daily_offset--;
+                            daily_offset--;
                         }
                         forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
@@ -155,7 +155,7 @@ void ir_remote_task(void *pvParameter)
                     case BUTTON_6:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        daily_offset =  6;
+                        daily_offset = 6;
                         forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;

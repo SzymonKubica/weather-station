@@ -34,7 +34,8 @@ void display_task(void *pvParameter)
                           (TickType_t)5)) {
 
             enum DisplayAction action = received_message->requested_action;
-            ESP_LOGI(DISPLAY_TAG, "Display action requested: %s", display_action_str[action]);
+            ESP_LOGI(DISPLAY_TAG, "Display action requested: %s",
+                     display_action_str[action]);
             switch (action) {
             case SCREEN_ON:
                 screen_on(&display);
