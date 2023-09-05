@@ -21,10 +21,8 @@ void send_msg_to_screen(enum DisplayAction message);
 
 enum DisplayMode {
     TEMPERATURE_AND_HUMIDITY,
-    SHOWING_WEATHER_NOW,
-    SHOWING_WEATHER_TODAY,
-    SHOWING_WEATHER_TOMORROW,
-    SHOWING_WEATHER_T2,
+    SHOWING_WEATHER_DAILY,
+    SHOWING_WEATHER_HOURLY,
 };
 
 struct Display {

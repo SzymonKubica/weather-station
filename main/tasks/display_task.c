@@ -49,23 +49,13 @@ void display_task(void *pvParameter)
                 update_display_mode(&display, TEMPERATURE_AND_HUMIDITY);
                 show_temperature(&display);
                 break;
-            case SHOW_WEATHER_NOW:
-                update_display_mode(&display, SHOWING_WEATHER_NOW);
+            case SHOW_WEATHER_HOURLY:
+                update_display_mode(&display, SHOWING_WEATHER_HOURLY);
                 display.hourly_forecast = received_message->hourly_forecast;
                 show_weather_hourly(&display);
                 break;
-            case SHOW_WEATHER_TODAY:
-                update_display_mode(&display, SHOWING_WEATHER_TODAY);
-                display.daily_forecast = received_message->daily_forecast;
-                show_weather_daily(&display);
-                break;
-            case SHOW_WEATHER_TOMORROW:
-                update_display_mode(&display, SHOWING_WEATHER_TOMORROW);
-                display.daily_forecast = received_message->daily_forecast;
-                show_weather_daily(&display);
-                break;
-            case SHOW_WEATHER_T2:
-                update_display_mode(&display, SHOWING_WEATHER_T2);
+            case SHOW_WEATHER_DAILY:
+                update_display_mode(&display, SHOWING_WEATHER_DAILY);
                 display.daily_forecast = received_message->daily_forecast;
                 show_weather_daily(&display);
                 break;
