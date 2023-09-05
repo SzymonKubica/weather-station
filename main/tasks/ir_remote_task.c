@@ -84,15 +84,18 @@ void ir_remote_task(void *pvParameter)
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_HOURLY;
                         // Show weather hourly now
-                        hourly_offset = (hourly_offset - 1) % (24 * 7);
+                        if (hourly_offset > 0) {
+                            hourly_offset--;
+                        }
                         forecast_request->requested_offset = hourly_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_100_PLUS:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        // Show weather today
-                        daily_offset = (daily_offset - 1) % 7;
+                        if (daily_offset > 0) {
+                          daily_offset--;
+                        }
                         forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;

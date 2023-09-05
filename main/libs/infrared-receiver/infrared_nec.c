@@ -64,7 +64,7 @@ enum RemoteButton map_from_int(int dataValue)
         return BUTTON_9;
     case 0xe619:
         return BUTTON_100_PLUS;
-    case 0xf20e:
+    case 0xf20d:
         return BUTTON_200_PLUS;
     case 0xea15:
         return BUTTON_PLUS;
