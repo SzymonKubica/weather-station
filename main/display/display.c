@@ -5,15 +5,17 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 {
 
     int gmt_offset = 1;
-    int hour = forecast->time->tm_hour + gmt_offset ;
+    int hour = forecast->time->tm_hour + gmt_offset;
 
     char time_buffer[26];
-    snprintf(time_buffer, 26, "Time:      %2d:%2d", hour, forecast->time->tm_min);
+    snprintf(time_buffer, 26, "Time:      %2d:%02d", hour,
+             forecast->time->tm_min);
 
     char temperature_buffer[22];
     snprintf(temperature_buffer, 22, "Temp:      %.1fC", forecast->temperature);
     char apparent_temperature_buffer[22];
-    snprintf(apparent_temperature_buffer, 22, "Feels:     %.1fC", forecast->apparent_temperature);
+    snprintf(apparent_temperature_buffer, 22, "Feels:     %.1fC",
+             forecast->apparent_temperature);
     char humidity_buffer[22];
     snprintf(humidity_buffer, 22, "Humid:     %.1f%%", forecast->humidity);
     char precipitation_buffer[22];
@@ -29,21 +31,32 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 }
 void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
 {
-    ssd1306_display_text(dev, 0, "Weather daily", 16, false);
+
+    // Need to be careful with the correct buffer sizes.
+    char date_buffer[32];
+    snprintf(date_buffer, 32, "Date: %02d.%02d.%4d", forecast->date->tm_mday,
+             forecast->date->tm_mon, forecast->date->tm_year + 1900);
+    char sunrise_buffer[28];
+    snprintf(sunrise_buffer, 28, "Sunrise:   %2d:%02d",
+             forecast->sunrise->tm_hour, forecast->sunrise->tm_min);
+    char sunset_buffer[28];
+    snprintf(sunset_buffer, 28, "Sunset:     %2d:%02d",
+             forecast->sunset->tm_hour, forecast->sunset->tm_min);
     char max_temperature_buffer[22];
-    snprintf(max_temperature_buffer, 22, "           %.1fC",
+    snprintf(max_temperature_buffer, 22, "Max Temp:  %.1fC",
              forecast->max_temperature);
     char min_temperature_buffer[22];
-    snprintf(min_temperature_buffer, 22, "           %.1fC",
+    snprintf(min_temperature_buffer, 22, "Min Temp:  %.1fC",
              forecast->min_temperature);
     char precipitation_buffer[22];
-    snprintf(precipitation_buffer, 22, "             %2d%%",
+    snprintf(precipitation_buffer, 22, "Rain:        %2d%%",
              forecast->max_precip_probability);
-    ssd1306_display_text(dev, 1, "Max Temperature:", 17, false);
-    ssd1306_display_text(dev, 2, max_temperature_buffer, 22, false);
-    ssd1306_display_text(dev, 3, "Min Temperature:", 17, false);
-    ssd1306_display_text(dev, 4, min_temperature_buffer, 22, false);
-    ssd1306_display_text(dev, 5, "Precipitation:", 15, false);
+    ssd1306_display_text(dev, 0, "Weather daily", 16, false);
+    ssd1306_display_text(dev, 1, date_buffer, 22, false);
+    ssd1306_display_text(dev, 2, sunrise_buffer, 22, false);
+    ssd1306_display_text(dev, 3, sunset_buffer, 22, false);
+    ssd1306_display_text(dev, 4, max_temperature_buffer, 22, false);
+    ssd1306_display_text(dev, 5, min_temperature_buffer, 22, false);
     ssd1306_display_text(dev, 6, precipitation_buffer, 22, false);
 }
 
