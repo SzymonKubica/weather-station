@@ -21,6 +21,9 @@ void ir_remote_task(void *pvParameter)
     struct ForecastRequest *forecast_request = &forecast_request_message;
     struct DisplayMessage *display_request = &display_message;
 
+    int hourly_offset = 0;
+    int daily_offset = 0;
+
     while (rb) {
         size_t rx_size = 0;
         // try to receive data from ringbuffer.
@@ -43,7 +46,7 @@ void ir_remote_task(void *pvParameter)
 
                     enum RemoteButton registered_button = map_from_int(rmt_cmd);
                     switch (registered_button) {
-                    case BUTTON_EQ:
+                    case BUTTON_CHANNEL:
                         system_message.system_action = TOGGLE_ONBOARD_LED;
                         break;
                     case BUTTON_CHANNEL_MINUS:
@@ -56,64 +59,104 @@ void ir_remote_task(void *pvParameter)
                         display_request->requested_action = SCREEN_ON;
                         system_message.message_payload = display_request;
                         break;
-                    case BUTTON_BACKWARD:
+                    case BUTTON_PLAY_PAUSE:
                         system_message.system_action = DISPLAY_REQUEST;
                         display_request->requested_action = SHOW_DHT_READING;
                         system_message.message_payload = display_request;
                         break;
-                    case BUTTON_FORWARD:
+                    case BUTTON_EQ:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_HOURLY;
                         // Show weather hourly now
-                        forecast_request->requested_offset = 0;
+                        hourly_offset = 0;
+                        forecast_request->requested_offset = hourly_offset;
+                        system_message.message_payload = forecast_request;
+                        break;
+                    case BUTTON_PLUS:
+                        system_message.system_action = FORECAST_REQUEST;
+                        forecast_request->request_type = WEATHER_HOURLY;
+                        // Show weather hourly now
+                        hourly_offset = (hourly_offset + 1) % (24 * 7);
+                        forecast_request->requested_offset = hourly_offset;
+                        system_message.message_payload = forecast_request;
+                        break;
+                    case BUTTON_MINUS:
+                        system_message.system_action = FORECAST_REQUEST;
+                        forecast_request->request_type = WEATHER_HOURLY;
+                        // Show weather hourly now
+                        hourly_offset = (hourly_offset - 1) % (24 * 7);
+                        forecast_request->requested_offset = hourly_offset;
+                        system_message.message_payload = forecast_request;
+                        break;
+                    case BUTTON_100_PLUS:
+                        system_message.system_action = FORECAST_REQUEST;
+                        forecast_request->request_type = WEATHER_DAILY;
+                        // Show weather today
+                        daily_offset = (daily_offset - 1) % 7;
+                        forecast_request->requested_offset = daily_offset;
+                        system_message.message_payload = forecast_request;
+                        break;
+                    case BUTTON_200_PLUS:
+                        system_message.system_action = FORECAST_REQUEST;
+                        forecast_request->request_type = WEATHER_DAILY;
+                        // Show weather today
+                        daily_offset = (daily_offset + 1) % 7;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_0:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
                         // Show weather today
-                        forecast_request->requested_offset = 0;
+                        daily_offset = 0;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_1:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
                         // Show weather tomorrow
-                        forecast_request->requested_offset = 1;
+                        daily_offset = 1;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_2:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
                         // Show weather the day after tomorrow
-                        forecast_request->requested_offset = 2;
+                        daily_offset = 2;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_3:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        forecast_request->requested_offset = 3;
+                        daily_offset = 3;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_4:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        forecast_request->requested_offset = 4;
+                        daily_offset = 4;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_5:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        forecast_request->requested_offset = 5;
+                        daily_offset = 5;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
                     case BUTTON_6:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = WEATHER_DAILY;
-                        forecast_request->requested_offset = 6;
+                        daily_offset =  6;
+                        forecast_request->requested_offset = daily_offset;
                         system_message.message_payload = forecast_request;
                         break;
-                    case BUTTON_PLAY_PAUSE:
+                    case BUTTON_FORWARD:
                         system_message.system_action = FORECAST_REQUEST;
                         forecast_request->request_type = UPDATE_WEATHER_DATA;
                         break;

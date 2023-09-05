@@ -40,7 +40,7 @@ void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
     snprintf(sunrise_buffer, 28, "Sunrise:   %2d:%02d",
              forecast->sunrise->tm_hour, forecast->sunrise->tm_min);
     char sunset_buffer[28];
-    snprintf(sunset_buffer, 28, "Sunset:     %2d:%02d",
+    snprintf(sunset_buffer, 28, "Sunset:    %2d:%02d",
              forecast->sunset->tm_hour, forecast->sunset->tm_min);
     char max_temperature_buffer[22];
     snprintf(max_temperature_buffer, 22, "Max Temp:  %.1fC",
