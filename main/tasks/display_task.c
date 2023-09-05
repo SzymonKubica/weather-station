@@ -33,7 +33,9 @@ void display_task(void *pvParameter)
         if (xQueueReceive(display_msg_queue, &(received_message),
                           (TickType_t)5)) {
 
-            switch (received_message->requested_action) {
+            enum DisplayAction action = received_message->requested_action;
+            ESP_LOGI(DISPLAY_TAG, "Display action requested: %s", display_action_str[action]);
+            switch (action) {
             case SCREEN_ON:
                 screen_on(&display);
                 break;

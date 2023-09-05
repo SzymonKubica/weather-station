@@ -94,6 +94,7 @@ static void system_task(void *pvParameter)
             case DISPLAY_REQUEST:
                 send_msg_to_screen(
                     *((enum DisplayAction *)received_msg->message_payload));
+                break;
             case FORECAST_REQUEST:
                 send_forecast_request(
                     (struct ForecastRequest *)received_msg->message_payload);
