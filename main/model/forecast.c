@@ -149,3 +149,10 @@ void free_forecast_daily(struct ForecastDaily *forecast)
     free(forecast->sunrise);
     free(forecast->sunset);
 }
+
+
+static void send_forecast_request(struct ForecastRequest *request)
+{
+    xQueueSend(weather_forecast_msg_queue, (void *)&request, (TickType_t)0);
+}
+
