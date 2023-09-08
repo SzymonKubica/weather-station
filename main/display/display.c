@@ -35,7 +35,7 @@ void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
     // Need to be careful with the correct buffer sizes.
     char date_buffer[32];
     snprintf(date_buffer, 32, "Date: %02d.%02d.%4d", forecast->date->tm_mday,
-             forecast->date->tm_mon, forecast->date->tm_year + 1900);
+             (forecast->date->tm_mon + 1), forecast->date->tm_year + 1900);
     char sunrise_buffer[28];
     snprintf(sunrise_buffer, 28, "Sunrise:   %2d:%02d",
              forecast->sunrise->tm_hour, forecast->sunrise->tm_min);
