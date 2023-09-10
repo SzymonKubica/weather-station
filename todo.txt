@@ -1,3 +1,2 @@
--> Add ability to source the weater for the next 7 days
--> Add displaying of the date for the weather daily
--> Simplify the message enums.
+-> Add ability to select wifi station and password
+-> Add ability to save the password
