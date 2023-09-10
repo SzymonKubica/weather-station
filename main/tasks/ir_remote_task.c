@@ -11,7 +11,7 @@ static void get_nec_ring_buffer(RingbufHandle_t *rb);
 
 void ir_remote_task(void *pvParameter)
 {
-    if (!ir_remote_input_queue) {
+    if (!ir_remote_msg_queue) {
         ESP_LOGE(NEC_TAG, "Failed to create IR Remote Input Queue");
     }
     RingbufHandle_t rb = NULL;

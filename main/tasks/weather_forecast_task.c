@@ -47,7 +47,7 @@ void weather_forecast_task(void *pvParameter)
 
     struct ForecastRequest *received_message;
     while (true) {
-        if (xQueueReceive(weather_forecast_msg_queue, &(received_message),
+        if (xQueueReceive(forecast_msg_queue, &(received_message),
                           (TickType_t)5)) {
 
             int offset;
