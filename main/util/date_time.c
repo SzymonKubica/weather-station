@@ -24,6 +24,12 @@ char *TIME_REQUEST = "GET " PATH " HTTP/1.0\r\n"
 
 void extract_time_data(cJSON *response);
 
+void allocate_system_time()
+{
+    system_time.date_time = malloc(sizeof(struct tm));
+    system_time.date_time_utc = malloc(sizeof(struct tm));
+}
+
 void update_time()
 {
     ESP_LOGI(TAG, "Sending HTTP request to get the current time...");

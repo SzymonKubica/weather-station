@@ -10,4 +10,6 @@ extern struct DateTime system_time;
 
 void update_time();
 
+void allocate_system_time();
+
 #endif
