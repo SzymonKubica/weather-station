@@ -47,7 +47,6 @@ TaskHandle_t task_3_handle = NULL;
 TaskHandle_t task_4_handle = NULL;
 
 static void system_task(void *pvParameter);
-static void send_message_to_weather_task(enum ForecastRequestType request);
 
 void app_main(void)
 {
