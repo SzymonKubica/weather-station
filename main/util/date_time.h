@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #ifndef DATE_TIME_H
 #define DATE_TIME_H
 

@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "driver/rmt_types_legacy.h"
 #include "esp_log.h"
 #include "freertos/ringbuf.h"

@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #ifndef SYSTEM_ACTION_H
 #define SYSTEM_ACTION_H
 

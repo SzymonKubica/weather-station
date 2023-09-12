@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "date_time.h"
 #include "../libs/http-client/http_client.h"
 #include "esp_log.h"

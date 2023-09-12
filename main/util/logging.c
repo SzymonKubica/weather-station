@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "logging.h"
 
 unsigned char log_run_level = LOG_LVL_INFO;

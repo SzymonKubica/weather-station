@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "onboard_led.h"
 #include "driver/gpio.h"
 #include "gpio_util.h"

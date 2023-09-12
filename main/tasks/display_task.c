@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "../libs/ssd1306/font8x8_basic.h"
 #include "../libs/ssd1306/ssd1306.h"
 

@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #ifndef WEATHER_FORECAST_TASK_H
 #define WEATHER_FORECAST_TASK_H
 

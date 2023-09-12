@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "forecast.h"
 #include <stdio.h>
 #include <stdlib.h>

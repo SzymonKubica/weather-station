@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "system_message.h"
 
 QueueHandle_t ir_remote_msg_queue = NULL;

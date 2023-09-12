@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #include "weather_forecast_task.h"
 #include <stdbool.h>
 #include <stdlib.h>

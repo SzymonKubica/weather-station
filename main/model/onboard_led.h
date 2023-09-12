@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
 #ifndef ONBOARD_LED_H
 #define ONBOARD_LED_H
 
