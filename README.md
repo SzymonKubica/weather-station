@@ -25,7 +25,7 @@ TODO
 ### Building the code
 
 First you need to get the esp-idf framework set up on your machine. You can find
-instuctions on how to do it [here](). After that you need to set the wifi
+instuctions on how to do it [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/). After that you need to set the wifi
 password for the project using the command:
 
 ```
