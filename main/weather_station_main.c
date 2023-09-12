@@ -1,3 +1,6 @@
+// Copyright (c) 2023 Szymon Kubica
+// SPDX-License-Identifier: MIT
+
 // Standard library imports
 #include "json/cJSON.h"
 #include <inttypes.h>

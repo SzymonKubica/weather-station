@@ -1,0 +1,3 @@
+#!/bin/bash
+find main/ -iname \*.c -o -iname \*.h | grep -v CMake | grep -v libs | xargs sed -i '1i \// Copyright (c) 2023 Szymon Kubica\n\// SPDX-License-Identifier: MIT'
+
