@@ -6,22 +6,27 @@
 void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 {
 
+    const char *time_format_str = "Time:      %2d:%02d";
+    const char *temp_format_str = "Temp:      %.1fC";
+    const char *feel_format_str = "Feels:     %.1fC";
+    const char *humi_format_str = "Humid:     %.1f%%";
+    const char *rain_format_str = "Rain:        %2d%%";
+
+    char time_buffer[26];
+    char temperature_buffer[22];
+    char apparent_temperature_buffer[22];
+    char humidity_buffer[22];
+    char precipitation_buffer[22];
+
     int gmt_offset = 1;
     int hour = forecast->time->tm_hour + gmt_offset;
 
-    char time_buffer[26];
-    snprintf(time_buffer, 26, "Time:      %2d:%02d", hour,
-             forecast->time->tm_min);
-
-    char temperature_buffer[22];
-    snprintf(temperature_buffer, 22, "Temp:      %.1fC", forecast->temperature);
-    char apparent_temperature_buffer[22];
-    snprintf(apparent_temperature_buffer, 22, "Feels:     %.1fC",
+    snprintf(time_buffer, 26, time_format_str, hour, forecast->time->tm_min);
+    snprintf(temperature_buffer, 22, temp_format_str, forecast->temperature);
+    snprintf(apparent_temperature_buffer, 22, feel_format_str,
              forecast->apparent_temperature);
-    char humidity_buffer[22];
-    snprintf(humidity_buffer, 22, "Humid:     %.1f%%", forecast->humidity);
-    char precipitation_buffer[22];
-    snprintf(precipitation_buffer, 22, "Rain:        %2d%%",
+    snprintf(humidity_buffer, 22, humi_format_str, forecast->humidity);
+    snprintf(precipitation_buffer, 22, rain_format_str,
              forecast->precip_probability);
 
     ssd1306_display_text(dev, 0, "Weather Hourly", 16, false);
@@ -33,26 +38,35 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 }
 void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
 {
+    const char *date_format_str = "Date: %02d.%02d.%4d";
+    const char *sunrise_format_str = "Sunrise:   %2d:%02d";
+    const char *sunset_format_str = "Sunset:    %2d:%02d";
+    const char *max_temp_format_str = "Max Temp:  %.1fC";
+    const char *min_temp_format_str = "Min Temp:  %.1fC";
+    const char *rain_format_str = "Rain:        %2d%%";
+
 
     // Need to be careful with the correct buffer sizes.
     char date_buffer[34];
-    snprintf(date_buffer, 34, "Date: %02d.%02d.%4d", forecast->date->tm_mday,
-             (forecast->date->tm_mon + 1), forecast->date->tm_year + 1900);
     char sunrise_buffer[28];
-    snprintf(sunrise_buffer, 28, "Sunrise:   %2d:%02d",
-             forecast->sunrise->tm_hour, forecast->sunrise->tm_min);
     char sunset_buffer[28];
-    snprintf(sunset_buffer, 28, "Sunset:    %2d:%02d",
-             forecast->sunset->tm_hour, forecast->sunset->tm_min);
     char max_temperature_buffer[22];
-    snprintf(max_temperature_buffer, 22, "Max Temp:  %.1fC",
-             forecast->max_temperature);
     char min_temperature_buffer[22];
-    snprintf(min_temperature_buffer, 22, "Min Temp:  %.1fC",
-             forecast->min_temperature);
     char precipitation_buffer[22];
-    snprintf(precipitation_buffer, 22, "Rain:        %2d%%",
+
+    snprintf(date_buffer, 34, date_format_str, forecast->date->tm_mday,
+             (forecast->date->tm_mon + 1), forecast->date->tm_year + 1900);
+    snprintf(sunrise_buffer, 28, sunrise_format_str, forecast->sunrise->tm_hour,
+             forecast->sunrise->tm_min);
+    snprintf(sunset_buffer, 28, sunset_format_str, forecast->sunset->tm_hour,
+             forecast->sunset->tm_min);
+    snprintf(max_temperature_buffer, 22, max_temp_format_str,
+             forecast->max_temperature);
+    snprintf(min_temperature_buffer, 22, min_temp_format_str,
+             forecast->min_temperature);
+    snprintf(precipitation_buffer, 22, rain_format_str,
              forecast->max_precip_probability);
+
     ssd1306_display_text(dev, 0, "Weather daily", 16, false);
     ssd1306_display_text(dev, 1, date_buffer, 22, false);
     ssd1306_display_text(dev, 2, sunrise_buffer, 22, false);
