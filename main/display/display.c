@@ -45,7 +45,6 @@ void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
     const char *min_temp_format_str = "Min Temp:  %.1fC";
     const char *rain_format_str = "Rain:        %2d%%";
 
-
     // Need to be careful with the correct buffer sizes.
     char date_buffer[34];
     char sunrise_buffer[28];
