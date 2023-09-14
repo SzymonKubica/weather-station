@@ -80,15 +80,15 @@ void free_old_data_if_present(
     struct ForecastHourly *forecasts[24 * FORECAST_DAYS],
     struct ForecastDaily *forecasts_daily[FORECAST_DAYS]);
 
+void allcate_request_contents(struct Request *request);
+void free_request(struct Request *request);
+
 void update_weather_data()
 {
     free_old_data_if_present(forecasts, forecasts_daily);
     ESP_LOGI(TAG, "Sending HTTP request to get weather data...");
     struct Request *request = malloc(sizeof(struct Request));
-    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
-    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
-    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
-    request->body = calloc(strlen(REQUEST), sizeof(char));
+    allcate_request_contents(request);
     request->max_attempts = 3;
 
     strncpy(request->web_server, WEB_SERVER, strlen(WEB_SERVER) + 1);
@@ -98,21 +98,32 @@ void update_weather_data()
     cJSON *json;
     int status = send_http_request(request, &json);
 
+    free_request(request);
+
     if (status == REQUEST_FAILED) {
         return;
     }
-
-    free(request->web_server);
-    free(request->web_port);
-    free(request->web_path);
-    free(request->body);
-    free(request);
 
     ESP_LOGI(TAG, "Extracting forecast data...");
     extract_hourly_forecast(json, FORECAST_DAYS, forecasts);
     extract_daily_forecast(json, FORECAST_DAYS, forecasts_daily);
 
     ESP_LOGI(TAG, "Weather data extracted successfully");
+}
+
+void allcate_request_contents(struct Request *request) {
+    request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
+    request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
+    request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
+    request->body = calloc(strlen(REQUEST), sizeof(char));
+}
+
+void free_request(struct Request *request) {
+    free(request->web_server);
+    free(request->web_port);
+    free(request->web_path);
+    free(request->body);
+    free(request);
 }
 
 void free_old_data_if_present(
