@@ -111,14 +111,16 @@ void update_weather_data()
     ESP_LOGI(TAG, "Weather data extracted successfully");
 }
 
-void allcate_request_contents(struct Request *request) {
+void allcate_request_contents(struct Request *request)
+{
     request->web_server = calloc(strlen(WEB_SERVER), sizeof(char));
     request->web_port = calloc(strlen(WEB_PORT), sizeof(char));
     request->web_path = calloc(strlen(WEB_PATH), sizeof(char));
     request->body = calloc(strlen(REQUEST), sizeof(char));
 }
 
-void free_request(struct Request *request) {
+void free_request(struct Request *request)
+{
     free(request->web_server);
     free(request->web_port);
     free(request->web_path);
