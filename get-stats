@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Lines File"
+find main/ -iname \*.c -o -iname \*.h | grep -v CMake | grep -v libs | xargs wc -l
+
