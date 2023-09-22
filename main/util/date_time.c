@@ -25,27 +25,19 @@ char *TIME_REQUEST = "GET " PATH " HTTP/1.0\r\n"
                      "\r\n";
 
 void extract_time_data(cJSON *response);
-
-void allocate_system_time()
-{
-    system_time.date_time = malloc(sizeof(struct tm));
-    system_time.date_time_utc = malloc(sizeof(struct tm));
-}
+void allocate_request_fields(struct Request *request);
+void populate_request_fields(struct Request *request);
+void free_request_fields(struct Request *request);
+void allocate_system_time();
 
 void update_time()
 {
     ESP_LOGI(TAG, "Sending HTTP request to get the current time...");
     struct Request *request = calloc(1, sizeof(struct Request));
-    request->web_server = calloc(strlen(TIME_SERVER) + 1, sizeof(char));
-    request->web_port = calloc(strlen(TIME_SERVER_PORT) + 1, sizeof(char));
-    request->web_path = calloc(strlen(TIME_SERVER_PATH) + 1, sizeof(char));
-    request->body = calloc(strlen(TIME_REQUEST) + 1, sizeof(char));
-    request->max_attempts = 3;
 
-    strncpy(request->web_server, TIME_SERVER, strlen(TIME_SERVER) + 1);
-    strncpy(request->web_port, TIME_SERVER_PORT, strlen(TIME_SERVER_PORT) + 1);
-    strncpy(request->web_path, TIME_SERVER_PATH, strlen(TIME_SERVER_PATH) + 1);
-    strncpy(request->body, TIME_REQUEST, strlen(TIME_REQUEST) + 1);
+    allocate_request_fields(request);
+    populate_request_fields(request);
+
     cJSON *json;
     int status = send_http_request(request, &json);
 
@@ -53,10 +45,7 @@ void update_time()
         return;
     }
 
-    free(request->web_server);
-    free(request->web_port);
-    free(request->web_path);
-    free(request->body);
+    free_request_fields(request);
     free(request);
 
     printf("%s\n", cJSON_Print(json));
@@ -66,16 +55,68 @@ void update_time()
     ESP_LOGI(TAG, "System time updated successfully.");
 }
 
+void allocate_system_time()
+{
+    system_time.date_time = malloc(sizeof(struct tm));
+    system_time.date_time_utc = malloc(sizeof(struct tm));
+}
+
+char *allocate_str(int length);
+
+void allocate_request_fields(struct Request *request)
+{
+    request->web_server = allocate_str(strlen(TIME_SERVER));
+    request->web_port = allocate_str(strlen(TIME_SERVER_PORT));
+    request->web_path = allocate_str(strlen(TIME_SERVER_PATH));
+    request->body = allocate_str(strlen(TIME_REQUEST));
+    request->max_attempts = 3;
+}
+
+void copy_str(char *destination, char *str);
+void populate_request_fields(struct Request *request)
+{
+    copy_str(request->web_server, TIME_SERVER);
+    copy_str(request->web_port, TIME_SERVER_PORT);
+    copy_str(request->web_path, TIME_SERVER_PATH);
+    copy_str(request->body, TIME_REQUEST);
+}
+
+void copy_str(char *destination, char *str)
+{
+    strncpy(destination, str, strlen(str) + 1);
+}
+
+void free_request_fields(struct Request *request)
+{
+    free(request->web_server);
+    free(request->web_port);
+    free(request->web_path);
+    free(request->body);
+}
+
+char *allocate_str(int length)
+{
+    // Need to account for the string terminator character.
+    return calloc(length + 1, sizeof(char));
+}
+
+char *extract_str_field(cJSON *response, const char *field_name);
+
 void extract_time_data(cJSON *response)
 {
-    char *date_time = cJSON_GetObjectItem(response, "datetime")->valuestring;
-    char *date_time_utc =
-        cJSON_GetObjectItem(response, "utc_datetime")->valuestring;
+    const char *fmt = "%Y-%m-%dT%T%z";
+    char *date_time = extract_str_field(response, "datetime");
+    char *date_time_utc = extract_str_field(response, "utc_datetime");
 
-    strptime(date_time, "%Y-%m-%dT%T%z", system_time.date_time);
-    strptime(date_time_utc, "%Y-%m-%dT%T%z", system_time.date_time_utc);
+    strptime(date_time, fmt, system_time.date_time);
+    strptime(date_time_utc, fmt, system_time.date_time_utc);
 
     char buffer[30];
-    strftime(buffer, 30, "%Y-%m-%dT%T%z", system_time.date_time);
-    printf("%s\n", buffer);
+    strftime(buffer, 30, fmt, system_time.date_time);
+    ESP_LOGI(TAG, "Extracted time:\n%s\n", buffer);
+}
+
+char *extract_str_field(cJSON *response, const char *field_name)
+{
+    return cJSON_GetObjectItem(response, field_name)->valuestring;
 }
