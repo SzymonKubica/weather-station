@@ -7,6 +7,11 @@ void wait_seconds(int seconds)
     vTaskDelay(seconds * 1000 / portTICK_PERIOD_MS);
 }
 
+/*
+ * Initializes non-volatile storage.
+ * TODO: figure out if I can save the wifi settings there
+ */
+
 void initialize_non_volatile_flash(void)
 {
     esp_err_t ret = nvs_flash_init();
