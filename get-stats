@@ -1,4 +1,11 @@
 #!/bin/bash
+# Print global statistics
 echo "Lines File"
 find main/ -iname \*.c -o -iname \*.h | grep -v CMake | grep -v libs | xargs wc -l
+echo ""
+
+
+ls | xargs file | grep directory | awk '{print $1}' | sed -e
+
+
 
