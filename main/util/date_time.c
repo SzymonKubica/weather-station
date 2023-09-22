@@ -48,11 +48,12 @@ void update_time()
     free_request_fields(request);
     free(request);
 
-    printf("%s\n", cJSON_Print(json));
+    ESP_LOGD(TAG, "Response received:\n%s\n", cJSON_Print(json));
     ESP_LOGI(TAG, "Extracting time data...");
     extract_time_data(json);
-    free(json);
     ESP_LOGI(TAG, "System time updated successfully.");
+
+    free(json);
 }
 
 void allocate_system_time()
