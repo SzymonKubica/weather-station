@@ -9,7 +9,7 @@
 
 #define SERVER "worldtimeapi.org"
 #define PORT "80"
-#define PATH "http://worldtimeapi.org/api/timezone/Europe/London"
+#define PATH "http://worldtimeapi.org/api/timezone/Europe/Warsaw"
 
 #define TAG "DATE_TIME"
 
@@ -23,7 +23,6 @@ char *TIME_REQUEST = "GET " PATH " HTTP/1.0\r\n"
                      "Host: " SERVER " \r\n"
                      "User-Agent: esp-idf/1.0 esp32\r\n"
                      "\r\n";
-
 void extract_time_data(cJSON *response);
 void allocate_request_fields(struct Request *request);
 void populate_request_fields(struct Request *request);
