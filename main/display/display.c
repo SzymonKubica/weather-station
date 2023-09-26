@@ -18,7 +18,9 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
     char humidity_buffer[22];
     char precipitation_buffer[22];
 
-    int gmt_offset = 1;
+    //TODO: add graceful handling of the timezone offset based on the selected
+    //location
+    int gmt_offset = 2;
     int hour = forecast->time->tm_hour + gmt_offset;
 
     snprintf(time_buffer, 26, time_format_str, hour, forecast->time->tm_min);
