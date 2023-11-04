@@ -9,7 +9,7 @@
 
 #define SERVER "worldtimeapi.org"
 #define PORT "80"
-#define PATH "http://worldtimeapi.org/api/timezone/Europe/Warsaw"
+#define PATH "http://worldtimeapi.org/api/timezone/Europe/London"
 
 #define TAG "DATE_TIME"
 

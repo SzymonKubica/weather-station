@@ -7,9 +7,9 @@ void print_weather_hourly(SSD1306_t *dev, struct ForecastHourly *forecast)
 {
 
     const char *time_format_str = "Time:      %2d:%02d";
-    const char *temp_format_str = "Temp:      %.1fC";
-    const char *feel_format_str = "Feels:     %.1fC";
-    const char *humi_format_str = "Humid:     %.1f%%";
+    const char *temp_format_str = "Temp:      %4.1fC";
+    const char *feel_format_str = "Feels:     %4.1fC";
+    const char *humi_format_str = "Humid:     %4.1f%%";
     const char *rain_format_str = "Rain:        %2d%%";
 
     char time_buffer[26];
@@ -41,8 +41,8 @@ void print_weather_daily(SSD1306_t *dev, struct ForecastDaily *forecast)
     const char *date_format_str = "Date: %02d.%02d.%4d";
     const char *sunrise_format_str = "Sunrise:   %2d:%02d";
     const char *sunset_format_str = "Sunset:    %2d:%02d";
-    const char *max_temp_format_str = "Max Temp:  %.1fC";
-    const char *min_temp_format_str = "Min Temp:  %.1fC";
+    const char *max_temp_format_str = "Max Temp:  %4.1fC";
+    const char *min_temp_format_str = "Min Temp:  %4.1fC";
     const char *rain_format_str = "Rain:        %2d%%";
 
     // Need to be careful with the correct buffer sizes.
@@ -80,9 +80,9 @@ void print_temperature_and_humidity(SSD1306_t *dev, float temperature,
 {
 
     char temperature_buffer[22];
-    snprintf(temperature_buffer, 22, "           %.1fC", temperature);
+    snprintf(temperature_buffer, 22, "           %4.1fC", temperature);
     char humidity_buffer[22];
-    snprintf(humidity_buffer, 22, "           %.1f%%", humidity);
+    snprintf(humidity_buffer, 22, "           %4.1f%%", humidity);
 
     ssd1306_display_text(dev, 1, "Weather Station", 16, false);
     ssd1306_display_text(dev, 3, "Temperature:", 13, false);
