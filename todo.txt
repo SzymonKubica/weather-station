@@ -1,2 +1,4 @@
 -> Add ability to select wifi station and password
 -> Add ability to save the password
+-> fix the timezone setting based on the location
+

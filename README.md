@@ -25,7 +25,35 @@ TODO
 ### Building the code
 
 First you need to get the esp-idf framework set up on your machine. You can find
-instuctions on how to do it [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/). After that you need to set the wifi
+instuctions on how to do it [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/).
+
+#### Installing esp-idf on Arch Linux
+
+If you are fortunate enough to be using an Arch-based distribution, you can
+download esp-idf using the following command:
+```
+sudo pacman -S esp-idf
+```
+After that you will be promted to install the python tool using:
+```
+/opt/esp-idf/install.sh
+```
+And then source all of them so that they are available in PATH environment
+variable
+
+```
+source /opt/esp-idf/export.sh
+```
+I recommend aliasing the above command inside of your .bashrc / .zshrc as you will
+need to run it in every new terminal window where you want to work with esp-idf
+framework. An example of such alias can be seen below:
+
+```
+alias get_idf='source /opt/esp-idf/export.sh'
+
+```
+
+After that you need to set the wifi
 password for the project using the command:
 
 ```
