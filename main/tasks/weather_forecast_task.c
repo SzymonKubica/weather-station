@@ -14,12 +14,20 @@
 
 #define SERVER "api.open-meteo.com"
 #define PORT "80"
+/* Uncomment this to use the Poland-Katowice values
 #define PATH                                                                   \
     "https://api.open-meteo.com/v1/"                                           \
     "forecast?latitude=50.403645&longitude=18.713217122865736&hourly="         \
     "temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_"   \
     "probability&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,"  \
     "precipitation_probability_max&timezone=Europe%2FBerlin&models=best_match"
+*/
+#define PATH                                                                   \
+    "https://api.open-meteo.com/v1/"                                           \
+    "forecast?latitude=51.5085&longitude=-0.1257&hourly="         \
+    "temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_"   \
+    "probability&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,"  \
+    "precipitation_probability_max&timezone=Europe%2FLondon&models=best_match"
 
 char *WEB_SERVER = SERVER;
 char *WEB_PORT = PORT;
